@@ -81,4 +81,5 @@ if st.session_state.so_luong > 0:
 
 # --- FOOTER ---
 st.markdown("---")
-st.caption("© 2025 Sản phẩm AI dành cho trẻ mầm non – Phục vụ giáo dục vùng cao")
+st.caption("© 2025 Sản phẩm AI dành cho trẻ mầm non – Cô giáo Lò Thị Hạnh-Trường MN Na Ư")
+
