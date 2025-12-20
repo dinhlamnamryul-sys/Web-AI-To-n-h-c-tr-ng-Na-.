@@ -15,8 +15,11 @@ st.set_page_config(
 # Khởi tạo Session
 if "step" not in st.session_state: st.session_state.step = 1
 if "num" not in st.session_state: st.session_state.num = 0
+# Biến này để kiểm soát việc tự động đọc, tránh đọc lại khi không cần thiết
+if "last_read_step" not in st.session_state: st.session_state.last_read_step = ""
+if "last_read_num" not in st.session_state: st.session_state.last_read_num = -1
 
-# ================== 2. CSS "SIÊU NỔI 3D" (GIỮ NGUYÊN ĐỘ ĐẸP) ==================
+# ================== 2. CSS "SIÊU NỔI 3D" (CANDY POP STYLE) ==================
 st.markdown("""
 <style>
     /* 1. NỀN CẦU VỒNG */
@@ -54,7 +57,7 @@ st.markdown("""
         animation: pop 0.5s;
     }
 
-    /* 4. NÚT BẤM 3D (ĐÃ CHỈNH LẠI MÀU CHO ĐẸP) */
+    /* 4. NÚT BẤM 3D */
     div.stButton > button {
         width: 100%;
         height: 70px;
@@ -95,18 +98,20 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ================== 3. XỬ LÝ ÂM THANH (ĐÃ TĂNG THỜI GIAN CHỜ) ==================
-def play_sound_and_wait(text, wait_seconds):
+# ================== 3. XỬ LÝ ÂM THANH TỰ ĐỘNG ==================
+def play_audio(text, wait_seconds=0):
+    """Hàm phát âm thanh"""
     try:
         sound_file = BytesIO()
         tts = gTTS(text=text, lang='vi')
         tts.write_to_fp(sound_file)
         st.audio(sound_file, format='audio/mp3', autoplay=True)
-        # Hiển thị thông báo để người dùng biết đang chờ âm thanh
-        with st.spinner(f"🔊 Cô đang đọc: '{text}'..."):
-            time.sleep(wait_seconds)
+        
+        if wait_seconds > 0:
+            with st.spinner(f"🔊 Cô đang đọc: '{text}'..."):
+                time.sleep(wait_seconds)
     except Exception as e:
-        st.error(f"Lỗi: {e}")
+        st.error(f"Lỗi âm thanh: {e}")
 
 def generate_data():
     st.session_state.num = random.randint(1, 10)
@@ -139,16 +144,13 @@ if st.session_state.step == 1:
     
     c1, c2, c3 = st.columns([1,2,1])
     with c2:
-        # Nút Bắt đầu (Xanh lá)
         st.markdown("""<style>div.stButton > button {background: linear-gradient(to bottom, #2ecc71, #27ae60) !important;}</style>""", unsafe_allow_html=True)
-        
         if st.button("🚀 BẮT ĐẦU NGAY"):
-            # Tăng lên 4 giây cho câu chào
-            play_sound_and_wait("Chào mừng bé! Hôm nay chúng mình cùng học số đếm nhé!", 4)
+            # Chuyển bước trước rồi mới đọc ở bước sau
             st.session_state.step = 2
             st.rerun()
 
-# --- BƯỚC 2: HỌC SỐ ---
+# --- BƯỚC 2: HỌC SỐ (TỰ ĐỘNG ĐỌC) ---
 elif st.session_state.step == 2:
     st.markdown(f"""
     <div class="game-card">
@@ -157,39 +159,36 @@ elif st.session_state.step == 2:
     </div>
     """, unsafe_allow_html=True)
 
-    # Hàng 1
+    # --- TỰ ĐỘNG ĐỌC KHI MỚI VÀO HOẶC ĐỔI SỐ ---
+    # Logic: Nếu bước này chưa đọc, hoặc số đã thay đổi thì đọc
+    current_state_key = f"step2_{st.session_state.num}"
+    if st.session_state.last_read_step != current_state_key:
+        play_audio(f"Bé hãy nhìn xem, đây là số mấy? Đây là số {st.session_state.num}", 4)
+        st.session_state.last_read_step = current_state_key # Đánh dấu đã đọc
+
+    # Giao diện nút bấm
     c1, c2 = st.columns(2)
     with c1:
-        # Nút Nghe câu hỏi (Tím)
+        # Nút Nghe lại (Tím)
         st.markdown(f"""<style>div.stButton:nth-of-type(1) > button {{background: linear-gradient(to bottom, #a55eea, #8854d0);}}</style>""", unsafe_allow_html=True)
-        if st.button("🔊 NGHE CÂU HỎI"):
-            play_sound_and_wait("Bé hãy nhìn xem, đây là số mấy?", 3)
+        if st.button("🔊 NGHE LẠI"):
+            play_audio(f"Đây là số {st.session_state.num}", 2)
             
     with c2:
-        # Nút Nghe tên số (Xanh Dương)
-        st.markdown(f"""<style>div.stButton:nth-of-type(2) > button {{background: linear-gradient(to bottom, #3498db, #2980b9);}}</style>""", unsafe_allow_html=True)
-        if st.button("🗣️ ĐÂY LÀ SỐ...?"):
-            play_sound_and_wait(f"Đây là số {st.session_state.num}", 2)
-
-    # Hàng 2
-    c3, c4 = st.columns(2)
-    with c3:
         # Nút Đổi số (Vàng)
-        st.markdown(f"""<style>div.stButton:nth-of-type(3) > button {{background: linear-gradient(to bottom, #f1c40f, #f39c12);}}</style>""", unsafe_allow_html=True)
+        st.markdown(f"""<style>div.stButton:nth-of-type(2) > button {{background: linear-gradient(to bottom, #f1c40f, #f39c12);}}</style>""", unsafe_allow_html=True)
         if st.button("🔄 ĐỔI SỐ KHÁC"):
             generate_data()
             st.rerun()
             
-    with c4:
-        # Nút Tiếp theo (Hồng)
-        st.markdown(f"""<style>div.stButton:nth-of-type(4) > button {{background: linear-gradient(to bottom, #ff9ff3, #f368e0);}}</style>""", unsafe_allow_html=True)
-        if st.button("➡️ XEM HÌNH ẢNH"):
-            # --- ĐÃ SỬA: Tăng thời gian chờ lên 5 giây ---
-            play_sound_and_wait(f"Đúng rồi! Số {st.session_state.num}. Cùng xem hình nhé!", 5)
-            st.session_state.step = 3
-            st.rerun()
+    # Nút Tiếp theo (Hồng)
+    st.markdown(f"""<style>div.stButton:nth-of-type(3) > button {{background: linear-gradient(to bottom, #ff9ff3, #f368e0);}}</style>""", unsafe_allow_html=True)
+    if st.button("➡️ XEM HÌNH ẢNH"):
+        play_audio(f"Đúng rồi! Số {st.session_state.num}. Cùng xem hình nhé!", 4)
+        st.session_state.step = 3
+        st.rerun()
 
-# --- BƯỚC 3: HỌC ĐẾM ---
+# --- BƯỚC 3: HỌC ĐẾM (TỰ ĐỘNG ĐỌC) ---
 elif st.session_state.step == 3:
     html_icons = "".join([f'<span class="char-item">{st.session_state.icon}</span>' for _ in range(st.session_state.num)])
     
@@ -201,28 +200,33 @@ elif st.session_state.step == 3:
     </div>
     """, unsafe_allow_html=True)
 
+    # --- TỰ ĐỘNG ĐỌC ---
+    current_state_key = f"step3_{st.session_state.num}"
+    if st.session_state.last_read_step != current_state_key:
+        play_audio(f"Đố bé biết có bao nhiêu bạn {st.session_state.name} ở đây? Có {st.session_state.num} bạn đấy!", 6)
+        st.session_state.last_read_step = current_state_key
+
     c1, c2 = st.columns(2)
     with c1:
-        # Nút Câu hỏi (Tím)
+        # Nút Nghe lại (Tím)
         st.markdown(f"""<style>div.stButton:nth-of-type(1) > button {{background: linear-gradient(to bottom, #a55eea, #8854d0);}}</style>""", unsafe_allow_html=True)
-        if st.button("🔊 NGHE CÂU HỎI"):
-            # Tăng lên 5 giây vì câu hỏi dài
-            play_sound_and_wait(f"Đố bé biết có bao nhiêu bạn {st.session_state.name} ở đây?", 5)
+        if st.button("🔊 NGHE LẠI"):
+            play_audio(f"Có bao nhiêu bạn {st.session_state.name} nhỉ?", 3)
             
     with c2:
         # Nút Đếm (Xanh lá)
         st.markdown(f"""<style>div.stButton:nth-of-type(2) > button {{background: linear-gradient(to bottom, #2ecc71, #27ae60);}}</style>""", unsafe_allow_html=True)
         if st.button("🔢 ĐẾM CÙNG CÔ"):
-            play_sound_and_wait(f"Có tất cả {st.session_state.num} bạn {st.session_state.name}", 3)
+            play_audio(f"Một, hai, ba... Có tất cả {st.session_state.num} bạn {st.session_state.name}", 4)
 
     # Nút Bài tập (Cam)
     st.markdown(f"""<style>div.stButton:nth-of-type(3) > button {{background: linear-gradient(to bottom, #ff9f43, #ee5253);}}</style>""", unsafe_allow_html=True)
     if st.button("➡️ LÀM BÀI TẬP"):
-        play_sound_and_wait("Bây giờ bé hãy tự mình chọn đáp án đúng nhé!", 3)
+        play_audio("Bây giờ bé hãy tự mình chọn đáp án đúng nhé!", 3)
         st.session_state.step = 4
         st.rerun()
 
-# --- BƯỚC 4: BÀI TẬP ---
+# --- BƯỚC 4: BÀI TẬP (TỰ ĐỘNG ĐỌC) ---
 elif st.session_state.step == 4:
     html_icons = "".join([f'<span class="char-item">{st.session_state.icon}</span>' for _ in range(st.session_state.num)])
     
@@ -233,11 +237,16 @@ elif st.session_state.step == 4:
     </div>
     """, unsafe_allow_html=True)
 
-    # Nút Câu hỏi (Tím)
+    # --- TỰ ĐỘNG ĐỌC ---
+    current_state_key = f"step4_{st.session_state.num}"
+    if st.session_state.last_read_step != current_state_key:
+        play_audio("Bé hãy đếm kỹ xem có bao nhiêu hình, rồi bấm vào số đúng ở dưới nhé!", 5)
+        st.session_state.last_read_step = current_state_key
+
+    # Nút Nghe lại đề bài (Tím)
     st.markdown(f"""<style>div.stButton:nth-of-type(1) > button {{background: linear-gradient(to bottom, #a55eea, #8854d0);}}</style>""", unsafe_allow_html=True)
-    if st.button("🔊 NGHE CÂU HỎI"):
-        # Tăng lên 6 giây cho chắc
-        play_sound_and_wait("Bé hãy đếm kỹ xem có bao nhiêu hình, rồi bấm vào số đúng ở dưới nhé!", 6)
+    if st.button("🔊 NGHE LẠI ĐỀ BÀI"):
+        play_audio("Bé hãy bấm vào số đúng ở dưới nhé!", 3)
 
     # 3 Nút đáp án (Xanh biển)
     cols = st.columns(3)
@@ -248,13 +257,13 @@ elif st.session_state.step == 4:
             if st.button(f"{choice}", key=f"quiz_{idx}"):
                 if choice == st.session_state.num:
                     st.balloons()
-                    play_sound_and_wait("Chính xác! Bé thông minh quá! Hoan hô!", 4)
+                    play_audio("Chính xác! Bé thông minh quá! Hoan hô!", 4)
                     generate_data()
                     st.session_state.step = 2
                     st.rerun()
                 else:
                     st.error("Chưa đúng!")
-                    play_sound_and_wait(f"Số {choice} chưa đúng. Bé thử lại nhé!", 3)
+                    play_audio(f"Số {choice} chưa đúng. Bé thử lại nhé!", 3)
 
     st.write("")
     # Nút Quay lại (Xám)
