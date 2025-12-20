@@ -4,125 +4,116 @@ from gtts import gTTS
 from io import BytesIO
 import time
 
-# ================== 1. CẤU HÌNH TRANG (FULL MÀN HÌNH) ==================
+# ================== 1. CẤU HÌNH TRANG ==================
 st.set_page_config(
     page_title="Bé Vui Học Toán",
     page_icon="🐰",
-    layout="centered", # Tập trung vào giữa màn hình cho bé dễ nhìn
-    initial_sidebar_state="collapsed" # Ẩn luôn thanh bên
+    layout="centered",
+    initial_sidebar_state="collapsed"
 )
 
-# Khởi tạo biến lưu trữ
+# Khởi tạo biến
 if "step" not in st.session_state: st.session_state.step = 1
 if "num" not in st.session_state: st.session_state.num = 0
 
-# ================== 2. SIÊU GIAO DIỆN (CLEAN & BEAUTIFUL) ==================
+# ================== 2. GIAO DIỆN (CSS GAME ĐẸP MẮT) ==================
 st.markdown("""
 <style>
-    /* 1. NỀN HOẠT HÌNH CHUYỂN ĐỘNG */
+    /* Nền chuyển màu hoạt hình */
     .stApp {
-        background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #a18cd1, #fbc2eb);
+        background: linear-gradient(-45deg, #a18cd1, #fbc2eb, #fad0c4, #ff9a9e);
         background-size: 400% 400%;
         animation: gradient 10s ease infinite;
-        font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+        font-family: 'Comic Sans MS', cursive, sans-serif;
     }
-    
     @keyframes gradient {
         0% {background-position: 0% 50%;}
         50% {background-position: 100% 50%;}
         100% {background-position: 0% 50%;}
     }
 
-    /* 2. KHUNG CHỨA NỘI DUNG (GLASSMORPHISM) */
+    /* Khung nội dung (Card) */
     .game-card {
-        background: rgba(255, 255, 255, 0.85); /* Nền trắng trong suốt */
-        backdrop-filter: blur(10px); /* Hiệu ứng mờ kính */
+        background: rgba(255, 255, 255, 0.9);
         border-radius: 40px;
-        padding: 40px;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.15);
-        border: 5px solid #fff;
+        padding: 30px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        border: 4px solid #fff;
         text-align: center;
         margin-top: 20px;
+        backdrop-filter: blur(10px);
     }
 
-    /* 3. ICON VÀ CHỮ */
-    .hero-icon {
-        font-size: 120px;
-        display: inline-block;
-        filter: drop-shadow(0 10px 10px rgba(0,0,0,0.2));
-        animation: float 3s ease-in-out infinite;
-        cursor: pointer;
+    /* Tiêu đề câu hỏi */
+    .question {
+        font-size: 26px;
+        color: #555;
+        font-weight: bold;
+        margin-bottom: 10px;
     }
-    
+
+    /* Số học to đùng */
+    .big-number {
+        font-size: 150px;
+        font-weight: 900;
+        color: #ff6b81;
+        text-shadow: 4px 4px 0px #fff, 6px 6px 0px rgba(0,0,0,0.1);
+        margin: 0;
+        line-height: 1.2;
+        animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    /* Icon nhân vật */
     .char-item {
-        font-size: 90px;
+        font-size: 80px;
         margin: 5px;
         display: inline-block;
         transition: transform 0.2s;
         cursor: pointer;
-    }
-    .char-item:hover { transform: scale(1.3) rotate(10deg); }
-
-    h1 {
-        color: #ff6b81;
-        font-size: 60px !important;
-        text-shadow: 3px 3px 0 #fff;
-        margin: 0;
-        padding: 0;
+        animation: float 3s ease-in-out infinite;
     }
     
-    .question {
-        font-size: 28px;
-        color: #555;
-        font-weight: bold;
-        margin-bottom: 20px;
-    }
-
-    /* 4. HIỆU ỨNG BAY LƯỢN */
     @keyframes float {
-        0% { transform: translateY(0px); }
-        50% { transform: translateY(-20px); }
-        100% { transform: translateY(0px); }
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    @keyframes pop {
+        0% { transform: scale(0); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
     }
 
-    /* 5. NÚT BẤM 3D (ĐẸP NHẤT) */
+    /* NÚT BẤM 3D */
     div.stButton > button {
         width: 100%;
         height: 70px;
-        border-radius: 25px;
-        font-size: 24px;
-        font-weight: 900; /* Chữ đậm */
+        border-radius: 20px;
+        font-size: 22px;
+        font-weight: bold;
         border: none;
-        box-shadow: 0 8px 0 #dfe6e9; /* Tạo khối 3D dưới đáy */
-        transition: all 0.1s;
-        transform: translateY(0);
         color: white;
         margin-bottom: 10px;
+        transition: transform 0.1s;
+        box-shadow: 0 6px 0 rgba(0,0,0,0.2);
     }
-
-    /* Khi bấm nút thì nút lún xuống */
     div.stButton > button:active {
-        transform: translateY(8px);
-        box-shadow: 0 0 0 #dfe6e9;
+        transform: translateY(6px);
+        box-shadow: none;
     }
-
-    /* Màu sắc riêng cho từng nút */
-    /* Nút Đọc (Xanh lá) */
-    div.stButton > button:first-child { background: #2ecc71; box-shadow: 0 8px 0 #27ae60; }
-    /* Nút Đổi câu (Vàng) */
-    div.stButton > button:nth-child(1) { background: #f1c40f; box-shadow: 0 8px 0 #f39c12; } 
-    /* Nút Bài tập (Xanh dương) */
-    div.stButton > button:last-child { background: #3498db; box-shadow: 0 8px 0 #2980b9; }
-
-    /* Ẩn menu mặc định của Streamlit */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
     
+    /* Màu nút tùy chỉnh */
+    .btn-green { background: #2ecc71 !important; } /* Nút Nghe */
+    .btn-blue { background: #3498db !important; }  /* Nút Tiếp */
+    .btn-orange { background: #f39c12 !important; } /* Nút Đổi */
+
+    /* Ẩn footer */
+    footer {visibility: hidden;}
+    #MainMenu {visibility: hidden;}
+
 </style>
 """, unsafe_allow_html=True)
 
-# ================== 3. LOGIC XỬ LÝ ==================
+# ================== 3. LOGIC HỆ THỐNG ==================
 def play_sound(text, delay=0):
     try:
         sound_file = BytesIO()
@@ -150,91 +141,110 @@ def generate_question():
     random.shuffle(choices)
     st.session_state.choices = choices
 
-# Tạo câu hỏi lần đầu
 if st.session_state.num == 0:
     generate_question()
 
-# ================== 4. GIAO DIỆN CHÍNH ==================
+# ================== 4. GIAO DIỆN CHÍNH (FLOW MỚI) ==================
 
-# --- MÀN HÌNH 1: CHÀO MỪNG ---
+# --- BƯỚC 1: MÀN HÌNH CHÀO ---
 if st.session_state.step == 1:
     st.markdown("""
     <div class="game-card">
-        <div style="font-size: 130px; animation: float 3s infinite;">🎡</div>
-        <h1>BÉ VUI HỌC TOÁN</h1>
-        <p class="question">Ứng dụng học đếm thông minh cho bé</p>
+        <div style="font-size: 100px;">👋</div>
+        <h1 style="color:#ff6b81;">BÉ VUI HỌC TOÁN</h1>
+        <p class="question">Chào mừng bé đến với lớp học AI</p>
     </div>
     """, unsafe_allow_html=True)
     
-    # Nút bắt đầu to ở giữa
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        if st.button("🚀 BẮT ĐẦU CHƠI", type="primary"):
-            play_sound("Chào mừng bé! Chúng mình cùng đi đếm số nhé!", delay=3)
+        if st.button("🚀 BẮT ĐẦU HỌC"):
+            play_sound("Chào mừng bé! Hôm nay chúng mình cùng học số nhé!", delay=3)
             st.session_state.step = 2
             st.rerun()
 
-# --- MÀN HÌNH 2: HỌC ĐẾM ---
+# --- BƯỚC 2: NHẬN BIẾT SỐ (MỚI THÊM) ---
 elif st.session_state.step == 2:
-    # Tạo hình ảnh icon
+    st.markdown(f"""
+    <div class="game-card">
+        <p class="question">Đố bé đây là số mấy?</p>
+        <p class="big-number">{st.session_state.num}</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        # Nút nghe
+        if st.button("🔊 Nghe tên số"):
+            play_sound(f"Đây là số {st.session_state.num}")
+    with c2:
+        # Nút đổi số khác nếu bé chán
+        if st.button("🔄 Số khác"):
+            generate_question()
+            st.rerun()
+    with c3:
+        # Nút chuyển sang đếm hình
+        if st.button("➡️ Xem hình"):
+            play_sound(f"Đúng rồi, đây là số {st.session_state.num}. Bây giờ chúng mình cùng tập đếm nhé!", delay=4)
+            st.session_state.step = 3
+            st.rerun()
+
+# --- BƯỚC 3: HỌC ĐẾM TƯƠNG ỨNG (CŨ LÀ BƯỚC 2) ---
+elif st.session_state.step == 3:
+    # Tạo hình ảnh
     html_icons = "".join([f'<span class="char-item">{st.session_state.icon}</span>' for _ in range(st.session_state.num)])
     
     st.markdown(f"""
     <div class="game-card">
-        <p class="question">Bé hãy đếm xem có bao nhiêu <b>{st.session_state.name}</b>?</p>
-        <div style="min-height: 150px;">{html_icons}</div>
+        <p class="question">Có bao nhiêu <b>{st.session_state.name}</b> ở đây nhỉ?</p>
+        <div style="min-height: 120px;">{html_icons}</div>
         <hr style="border: 2px dashed #eee;">
-        <h1 style="color: #ff4757; font-size: 100px;">{st.session_state.num}</h1>
+        <h1 style="font-size: 80px; color: #ff4757; margin:0;">{st.session_state.num}</h1>
     </div>
     """, unsafe_allow_html=True)
     
-    # 3 Nút chức năng
-    c1, c2, c3 = st.columns(3)
+    c1, c2 = st.columns(2)
     with c1:
-        if st.button("🔊 Đọc mẫu"):
-            play_sound(f"Có {st.session_state.num} {st.session_state.name}")
+        if st.button("🔊 Đếm cùng cô"):
+            play_sound(f"Có tất cả {st.session_state.num} {st.session_state.name}")
     with c2:
-        if st.button("🔄 Đổi câu"):
-            generate_question()
-            st.rerun()
-    with c3:
-        if st.button("➡️ Bài tập"):
-            play_sound("Bây giờ bé hãy chọn đáp án đúng nhé!", delay=2.5)
-            st.session_state.step = 3
+        if st.button("➡️ Làm bài tập"):
+            play_sound("Bây giờ bé hãy tự chọn đáp án đúng nhé!", delay=2.5)
+            st.session_state.step = 4
             st.rerun()
 
-# --- MÀN HÌNH 3: TRẮC NGHIỆM ---
-elif st.session_state.step == 3:
+# --- BƯỚC 4: TRẮC NGHIỆM KIỂM TRA ---
+elif st.session_state.step == 4:
     # Chỉ hiện hình, không hiện số
     html_icons = "".join([f'<span class="char-item">{st.session_state.icon}</span>' for _ in range(st.session_state.num)])
     
     st.markdown(f"""
     <div class="game-card">
-        <p class="question">Đố bé biết có bao nhiêu {st.session_state.name}?</p>
-        <div style="min-height: 150px;">{html_icons}</div>
-        <p style="color:#aaa; font-size:16px;">(Bé hãy bấm vào số đúng bên dưới nhé)</p>
+        <p class="question">Bé hãy chọn số đúng cho hình này:</p>
+        <div style="min-height: 120px;">{html_icons}</div>
     </div>
     """, unsafe_allow_html=True)
     
-    # 3 Nút đáp án to
+    # 3 Nút đáp án
     cols = st.columns(3)
     for idx, choice in enumerate(st.session_state.choices):
         with cols[idx]:
-            # CSS hack để chỉnh màu nút đáp án cho đẹp
-            if st.button(f"{choice}", key=f"btn_{idx}"):
+            if st.button(f"{choice}", key=f"ans_{idx}"):
                 if choice == st.session_state.num:
-                    st.balloons() # Bóng bay
+                    st.balloons()
                     st.success("🎉 CHÍNH XÁC! BÉ GIỎI QUÁ!")
                     play_sound("Hoan hô! Bé trả lời đúng rồi!", delay=2)
-                    generate_question() # Tạo câu mới
-                    st.session_state.step = 2 # Quay về màn hình học
+                    
+                    # QUAY LẠI BƯỚC 2 (HỌC SỐ MỚI)
+                    generate_question()
+                    st.session_state.step = 2 
                     st.rerun()
                 else:
                     st.error("SAI RỒI! BÉ ĐẾM LẠI NHÉ!")
-                    play_sound("Chưa đúng đâu. Bé thử lại nhé!")
+                    play_sound("Chưa đúng đâu. Bé thử lại đi!")
 
     st.write("")
-    st.write("")
-    if st.button("⬅️ Quay lại học đếm"):
+    # Nút quay lại học nếu quên
+    if st.button("⬅️ Quay lại học số"):
         st.session_state.step = 2
         st.rerun()
