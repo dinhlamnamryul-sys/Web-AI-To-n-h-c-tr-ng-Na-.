@@ -8,7 +8,7 @@ import time
 st.set_page_config(
     page_title="Bé Vui Học Toán 3D",
     page_icon="🐰",
-    layout="wide",  # Đổi sang wide để có không gian chiều ngang
+    layout="wide",
     initial_sidebar_state="collapsed"
 )
 
@@ -16,7 +16,7 @@ st.set_page_config(
 if "step" not in st.session_state: st.session_state.step = 1
 if "num" not in st.session_state: st.session_state.num = 0
 
-# ================== 2. CSS "SIÊU NỔI" & BUTTON (GIỮ NGUYÊN STYLE ĐẸP) ==================
+# ================== 2. CSS "SIÊU NỔI" & HOẠT HÌNH (ĐÃ THÊM ANIMATION) ==================
 st.markdown("""
 <style>
     /* Nền cầu vồng */
@@ -34,11 +34,8 @@ st.markdown("""
         text-align: center;
         border: 6px solid #fff;
         animation: floatCard 5s ease-in-out infinite;
-        height: 100%; /* Để card cân đối */
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
+        position: relative;
+        z-index: 2; /* Để nổi lên trên các hình trang trí nếu cần */
     }
 
     @keyframes floatCard {
@@ -59,14 +56,14 @@ st.markdown("""
     /* BUTTON STYLE "KẸO DẺO" */
     div.stButton > button {
         width: 100%;
-        height: 65px; /* Giảm chiều cao chút cho gọn */
-        font-size: 18px !important; /* Chữ vừa phải để không bị tràn */
+        height: 65px;
+        font-size: 18px !important;
         font-weight: 800 !important;
         color: white !important;
         border: 3px solid white !important;
         border-radius: 30px !important;
         cursor: pointer;
-        margin-bottom: 12px; /* Khoảng cách giữa các nút */
+        margin-bottom: 12px;
         box-shadow: 0 5px 0 rgba(0,0,0,0.15);
         transition: all 0.2s;
     }
@@ -87,12 +84,88 @@ st.markdown("""
     
     #MainMenu, footer, header {visibility: hidden;}
     
-    /* Chỉnh container để nút không bị quá to */
     .block-container {
         padding-top: 2rem;
         padding-bottom: 2rem;
         max-width: 1000px;
     }
+
+    /* ============================================================
+       PHẦN TRANG TRÍ HOẠT HÌNH (NEW)
+       ============================================================ */
+    
+    /* Khung chứa các con vật phía dưới */
+    .playground-area {
+        margin-top: 40px;
+        height: 150px;
+        position: relative;
+        width: 100%;
+        overflow: hidden; /* Giới hạn không cho chạy ra ngoài */
+        background: rgba(255, 255, 255, 0.2); /* Nền mờ nhẹ như mặt nước/cỏ */
+        border-radius: 30px;
+        border: 2px dashed rgba(255,255,255,0.5);
+    }
+
+    /* 1. Con vịt bơi */
+    @keyframes swim {
+        0% { transform: translateX(-50px) scaleX(1); left: 0%; }
+        45% { transform: translateX(400px) scaleX(1); left: 0%;}
+        50% { transform: translateX(400px) scaleX(-1); left: 0%;} /* Quay đầu */
+        95% { transform: translateX(-50px) scaleX(-1); left: 0%;}
+        100% { transform: translateX(-50px) scaleX(1); left: 0%;}
+    }
+    .duck-anim {
+        position: absolute;
+        bottom: 20px;
+        font-size: 60px;
+        animation: swim 12s linear infinite;
+        z-index: 1;
+        cursor: grab;
+    }
+
+    /* 2. Hoa đung đưa */
+    @keyframes sway {
+        0%, 100% { transform: rotate(-10deg); }
+        50% { transform: rotate(10deg); }
+    }
+    .flower-anim {
+        position: absolute;
+        bottom: 10px;
+        font-size: 50px;
+        animation: sway 3s ease-in-out infinite;
+        z-index: 2;
+    }
+    
+    /* 3. Ong bay lượn */
+    @keyframes fly {
+        0% { transform: translate(0, 0); }
+        25% { transform: translate(50px, -30px); }
+        50% { transform: translate(100px, 0px); }
+        75% { transform: translate(50px, 30px); }
+        100% { transform: translate(0, 0); }
+    }
+    .bee-anim {
+        position: absolute;
+        top: 20px;
+        right: 50px;
+        font-size: 40px;
+        animation: fly 4s ease-in-out infinite;
+    }
+    
+    /* Bong bóng nước */
+    .bubble {
+        position: absolute;
+        bottom: 0;
+        background: rgba(255,255,255,0.6);
+        border-radius: 50%;
+        animation: rise 4s infinite ease-in;
+    }
+    @keyframes rise {
+        0% { bottom: 0; opacity: 0; transform: scale(0.5); }
+        50% { opacity: 1; }
+        100% { bottom: 100%; opacity: 0; transform: scale(1.5); }
+    }
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -125,9 +198,28 @@ def generate_data():
 if st.session_state.num == 0:
     generate_data()
 
+# --- HÀM TẠO HTML TRANG TRÍ ---
+def get_decoration_html():
+    return """
+    <div class="playground-area">
+        <div class="duck-anim">🦆</div>
+        
+        <div class="flower-anim" style="left: 20px; font-size: 40px;">🌷</div>
+        <div class="flower-anim" style="left: 70px; animation-delay: 1s;">🌻</div>
+        
+        <div class="flower-anim" style="right: 30px;">🍄</div>
+        
+        <div class="bee-anim">🐝</div>
+        
+        <div class="bubble" style="left: 10%; width: 10px; height: 10px; animation-delay: 0s;"></div>
+        <div class="bubble" style="left: 50%; width: 15px; height: 15px; animation-delay: 2s;"></div>
+        <div class="bubble" style="left: 80%; width: 20px; height: 20px; animation-delay: 1s;"></div>
+    </div>
+    """
+
 # ================== 4. GIAO DIỆN CHÍNH (LAYOUT MỚI) ==================
 
-# --- BƯỚC 1: INTRO (Vẫn giữ giữa cho đẹp, nhưng nút gọn lại) ---
+# --- BƯỚC 1: INTRO ---
 if st.session_state.step == 1:
     st.markdown("""
     <div class="game-card" style="padding: 50px;">
@@ -136,6 +228,9 @@ if st.session_state.step == 1:
         <p class="instruction">Học mà chơi - Chơi mà học</p>
     </div>
     """, unsafe_allow_html=True)
+    
+    # Thêm trang trí ở trang chủ luôn cho đẹp
+    st.markdown(get_decoration_html(), unsafe_allow_html=True)
     
     c1, c2, c3 = st.columns([1,1,1])
     with c2:
@@ -148,7 +243,6 @@ if st.session_state.step == 1:
 # --- BƯỚC 2: HỌC SỐ (LAYOUT CỘT TRÁI - PHẢI) ---
 elif st.session_state.step == 2:
     
-    # Chia cột: Cột 1 (3 phần) chứa nút, Cột 2 (7 phần) chứa hình
     col_controls, col_display = st.columns([3, 7], gap="large")
 
     with col_controls:
@@ -184,8 +278,11 @@ elif st.session_state.step == 2:
             <div class="super-number">{st.session_state.num}</div>
         </div>
         """, unsafe_allow_html=True)
+        
+        # --- CHÈN TRANG TRÍ VÀO ĐÂY ---
+        st.markdown(get_decoration_html(), unsafe_allow_html=True)
 
-# --- BƯỚC 3: HỌC ĐẾM (LAYOUT CỘT TRÁI - PHẢI) ---
+# --- BƯỚC 3: HỌC ĐẾM ---
 elif st.session_state.step == 3:
     html_icons = "".join([f'<span class="char-item">{st.session_state.icon}</span>' for _ in range(st.session_state.num)])
     
@@ -194,17 +291,14 @@ elif st.session_state.step == 3:
     with col_controls:
         st.markdown("### 🎮 Điều khiển")
         
-        # Nút Nghe
         st.markdown(f"""<style>div.stButton:nth-of-type(1) > button {{background: linear-gradient(to bottom, #a29bfe, #6c5ce7);}}</style>""", unsafe_allow_html=True)
         if st.button("🔊 Nghe câu hỏi"):
             play_sound_and_wait(f"Đố bé biết có bao nhiêu bạn {st.session_state.name} ở đây?", 5)
         
-        # Nút Đếm
         st.markdown(f"""<style>div.stButton:nth-of-type(2) > button {{background: linear-gradient(to bottom, #55efc4, #00b894);}}</style>""", unsafe_allow_html=True)
         if st.button("🔢 Đếm cùng cô"):
             play_sound_and_wait(f"Có tất cả {st.session_state.num} bạn {st.session_state.name}", 3)
 
-        # Nút Chơi game
         st.markdown(f"""<style>div.stButton:nth-of-type(3) > button {{background: linear-gradient(to bottom, #fab1a0, #e17055);}}</style>""", unsafe_allow_html=True)
         if st.button("🎮 Chơi trò chơi"):
             play_sound_and_wait("Bây giờ bé hãy tự mình chọn đáp án đúng nhé!", 3)
@@ -219,6 +313,9 @@ elif st.session_state.step == 3:
             <h1 style="font-size: 80px; color:#ff6b81; margin:0;">{st.session_state.num}</h1>
         </div>
         """, unsafe_allow_html=True)
+        
+        # --- CHÈN TRANG TRÍ VÀO ĐÂY ---
+        st.markdown(get_decoration_html(), unsafe_allow_html=True)
 
 # --- BƯỚC 4: BÀI TẬP ---
 elif st.session_state.step == 4:
@@ -229,12 +326,10 @@ elif st.session_state.step == 4:
     with col_controls:
         st.markdown("### 🎮 Điều khiển")
         
-        # Nút Nghe
         st.markdown(f"""<style>div.stButton:nth-of-type(1) > button {{background: linear-gradient(to bottom, #a29bfe, #6c5ce7);}}</style>""", unsafe_allow_html=True)
         if st.button("🔊 Nghe câu hỏi"):
             play_sound_and_wait("Bé hãy đếm kỹ và chọn số đúng ở bên cạnh nhé!", 5)
             
-        # Nút Quay lại
         st.markdown(f"""<style>div.stButton:last-of-type > button {{background: linear-gradient(to bottom, #dfe6e9, #b2bec3); color: #636e72 !important; margin-top: 20px;}}</style>""", unsafe_allow_html=True)
         if st.button("⬅️ Quay lại"):
             st.session_state.step = 2
@@ -248,8 +343,7 @@ elif st.session_state.step == 4:
         </div>
         """, unsafe_allow_html=True)
         
-        st.write("") # Khoảng cách
-        # Các nút đáp án nằm dưới hình ảnh cho dễ nhìn
+        st.write("") 
         c1, c2, c3 = st.columns(3)
         for idx, choice in enumerate(st.session_state.choices):
             with [c1, c2, c3][idx]:
@@ -267,3 +361,6 @@ elif st.session_state.step == 4:
                     else:
                         st.error("Sai rồi!")
                         play_sound_and_wait("Chưa đúng rồi, bé thử lại nhé!", 2)
+
+        # --- CHÈN TRANG TRÍ VÀO ĐÂY ---
+        st.markdown(get_decoration_html(), unsafe_allow_html=True)
