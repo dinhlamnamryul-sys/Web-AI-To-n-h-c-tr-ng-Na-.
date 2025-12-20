@@ -3,26 +3,31 @@ import random
 from gtts import gTTS
 from io import BytesIO
 import time
-from PIL import Image
+import os # Thư viện để làm việc với file hệ thống
 
-# ================== 1. CẤU HÌNH TRANG ==================
+# ================== 1. CẤU HÌNH & KHỞI TẠO THƯ MỤC LƯU TRỮ ==================
 st.set_page_config(
     page_title="Hệ Thống Giáo Dục Mầm Non AI",
     page_icon="🎓",
-    layout="wide", # Dùng màn hình rộng để hiển thị kho học liệu đẹp hơn
+    layout="wide",
     initial_sidebar_state="expanded"
 )
 
+# Tên thư mục để lưu file (sẽ tự tạo nếu chưa có)
+UPLOAD_FOLDER = "thu_vien_so"
+
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
 # Khởi tạo Session State
 if "step" not in st.session_state: st.session_state.step = 1
-if "uploaded_files" not in st.session_state: st.session_state.uploaded_files = []
 
-# ================== 2. SIÊU CSS (GIAO DIỆN LONG LANH) ==================
+# ================== 2. CSS GIAO DIỆN (GIỮ NGUYÊN ĐỘ ĐẸP) ==================
 st.markdown("""
 <style>
-    /* Nền cầu vồng chuyển động */
+    /* Nền màu gradient động */
     .stApp {
-        background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #a18cd1, #fbc2eb);
+        background: linear-gradient(-45deg, #a18cd1, #fbc2eb, #fad0c4, #ff9a9e);
         background-size: 400% 400%;
         animation: gradient 15s ease infinite;
         font-family: 'Comic Sans MS', cursive, sans-serif;
@@ -33,85 +38,83 @@ st.markdown("""
         100% {background-position: 0% 50%;}
     }
 
-    /* Card (Khung nội dung) */
+    /* Card nổi */
     .main-card {
         background: rgba(255, 255, 255, 0.95);
-        border-radius: 30px;
+        border-radius: 25px;
         padding: 30px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-        border: 4px solid #fff;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        border: 2px solid rgba(255, 255, 255, 0.18);
         text-align: center;
         margin-bottom: 20px;
     }
 
-    /* Sidebar (Thanh bên) đẹp hơn */
+    /* Sidebar trong suốt */
     [data-testid="stSidebar"] {
-        background-color: rgba(255, 255, 255, 0.8);
-        border-right: 2px solid #fff;
+        background-color: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
     }
 
-    /* Tiêu đề & Chữ */
-    h1 { color: #ff6f61; text-shadow: 2px 2px 0 #fff; margin:0;}
-    h2 { color: #6a11cb; }
-    .big-text { font-size: 24px; color: #555; }
+    h1 { color: #ff6b6b; text-shadow: 1px 1px 0 #fff; margin: 0;}
     
-    /* Animation cho icon */
-    .bounce { animation: bounce 2s infinite; display: inline-block; font-size: 80px;}
-    @keyframes bounce {
-        0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
-        40% {transform: translateY(-20px);}
-        60% {transform: translateY(-10px);}
-    }
-
-    /* Nút bấm (Button) */
+    /* Nút bấm đẹp */
     div.stButton > button {
         width: 100%;
-        height: 60px;
-        border-radius: 20px;
-        font-size: 22px;
+        height: 55px;
+        border-radius: 15px;
+        font-size: 20px;
         font-weight: bold;
-        background: linear-gradient(45deg, #85FFBD 0%, #FFFB7D 100%);
-        color: #444;
-        border: 2px solid #fff;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        transition: transform 0.2s;
+        background: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
+        color: #2c3e50;
+        border: none;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: 0.3s;
     }
     div.stButton > button:hover {
-        transform: scale(1.03);
-        background: linear-gradient(45deg, #FFFB7D 0%, #85FFBD 100%);
-    }
-
-    /* Vùng tải file (Uploader) */
-    [data-testid="stFileUploader"] {
-        background-color: #f0f2f6;
-        padding: 20px;
-        border-radius: 20px;
-        border: 2px dashed #888;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
     }
 </style>
 """, unsafe_allow_html=True)
 
-# ================== 3. HÀM HỖ TRỢ ==================
+# ================== 3. HÀM HỖ TRỢ HỆ THỐNG ==================
 def play_sound(text, delay=0):
-    """Phát âm thanh và đợi (nếu cần)"""
     try:
         sound_file = BytesIO()
         tts = gTTS(text=text, lang='vi')
         tts.write_to_fp(sound_file)
         st.audio(sound_file, format='audio/mp3', autoplay=True)
         if delay > 0:
-            with st.spinner("Đang nói..."):
+            with st.spinner("Cô giáo đang nói..."):
                 time.sleep(delay)
     except:
         pass
 
+def save_uploaded_file(uploaded_file):
+    """Lưu file từ giao diện vào ổ cứng"""
+    try:
+        file_path = os.path.join(UPLOAD_FOLDER, uploaded_file.name)
+        with open(file_path, "wb") as f:
+            f.write(uploaded_file.getbuffer())
+        return True
+    except:
+        return False
+
+def get_file_type(filename):
+    """Xác định loại file dựa trên đuôi"""
+    ext = filename.split('.')[-1].lower()
+    if ext in ['png', 'jpg', 'jpeg', 'gif']: return 'image'
+    if ext in ['mp4', 'mov', 'avi']: return 'video'
+    if ext in ['mp3', 'wav']: return 'audio'
+    return 'unknown'
+
+# Logic tạo câu hỏi toán
 def generate_math_question():
     st.session_state.num = random.randint(1, 10)
     st.session_state.icon, st.session_state.name = random.choice([
         ("🐰", "Con Thỏ"), ("🍎", "Quả Táo"), ("⭐", "Ngôi Sao"), 
         ("🎈", "Bóng Bay"), ("🍄", "Cây Nấm"), ("🐠", "Con Cá")
     ])
-    # Tạo đáp án
     choices = [st.session_state.num]
     while len(choices) < 3:
         fake = random.randint(1, 10)
@@ -121,134 +124,106 @@ def generate_math_question():
 
 if "num" not in st.session_state: generate_math_question()
 
-# ================== 4. THANH ĐIỀU HƯỚNG (SIDEBAR) ==================
+# ================== 4. GIAO DIỆN CHÍNH ==================
 with st.sidebar:
-    st.image("https://cdn-icons-png.flaticon.com/512/2232/2232688.png", width=100)
-    st.markdown("## 🎈 MENU CHÍNH")
-    
-    menu = st.radio(
-        "",
-        ["🐰 Bé Học Toán", "📂 Kho Học Liệu (Tải File)"],
-        index=0
-    )
-    
-    st.markdown("---")
-    st.info("💡 Mẹo: Giáo viên có thể tải video bài giảng lên 'Kho Học Liệu' để trình chiếu.")
+    st.image("https://cdn-icons-png.flaticon.com/512/3069/3069172.png", width=80)
+    st.title("MENU")
+    menu = st.radio("", ["🐰 Bé Học Toán", "📂 Kho Học Liệu (Đám Mây)"])
+    st.info("💡 File tải lên sẽ được lưu vĩnh viễn trong thư mục 'thu_vien_so'")
 
-# ================== 5. CHỨC NĂNG 1: BÉ HỌC TOÁN ==================
+# --- CHỨC NĂNG 1: BÉ HỌC TOÁN ---
 if menu == "🐰 Bé Học Toán":
-    
-    # --- Màn hình chào ---
     if st.session_state.step == 1:
-        st.markdown('<div class="main-card">', unsafe_allow_html=True)
-        st.markdown('<div class="bounce">🐰</div>', unsafe_allow_html=True)
-        st.markdown('<h1>BÉ VUI HỌC TOÁN</h1>', unsafe_allow_html=True)
-        st.markdown('<p class="big-text">Chào mừng bé đến với khu vườn thần tiên!</p>', unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-        
+        st.markdown('<div class="main-card"><h1>👋 BÉ VUI HỌC TOÁN</h1><p>Chào mừng bé đến lớp học AI</p></div>', unsafe_allow_html=True)
         c1, c2, c3 = st.columns([1,2,1])
         with c2:
-            if st.button("🚀 BẮT ĐẦU NGAY"):
-                play_sound("Chào mừng bé! Chúng mình cùng đi học đếm nhé!", delay=4)
+            if st.button("🚀 BẮT ĐẦU"):
+                play_sound("Chào mừng bé! Chúng mình cùng học nào", delay=3)
                 st.session_state.step = 2
                 st.rerun()
-
-    # --- Màn hình học ---
+    
     elif st.session_state.step == 2:
-        img_html = "".join([f'<span style="font-size:60px; margin:5px; display:inline-block; animation:bounce 2s infinite">{st.session_state.icon}</span>' for _ in range(st.session_state.num)])
-        
-        st.markdown(f"""
-        <div class="main-card">
-            <p class="big-text">Bé hãy đếm xem có bao nhiêu <b>{st.session_state.name}</b>?</p>
-            <div>{img_html}</div>
-            <h1 style="font-size:80px; color:#ff6b6b">{st.session_state.num}</h1>
-            <p>({st.session_state.num} - {["Không","Một","Hai","Ba","Bốn","Năm","Sáu","Bảy","Tám","Chín","Mười"][st.session_state.num]})</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("🔊 Nghe Đọc"):
-                play_sound(f"Có tất cả {st.session_state.num} {st.session_state.name}")
-        with col2:
+        img_html = "".join([f'<span style="font-size:50px; margin:5px;">{st.session_state.icon}</span>' for _ in range(st.session_state.num)])
+        st.markdown(f'<div class="main-card"><p>Bé hãy đếm: <b>{st.session_state.name}</b></p><div>{img_html}</div><h1 style="font-size:60px; color:red">{st.session_state.num}</h1></div>', unsafe_allow_html=True)
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.button("🔊 Đọc"): play_sound(f"Có {st.session_state.num} {st.session_state.name}")
+        with c2:
             if st.button("➡️ Bài Tập"):
-                play_sound("Bây giờ bé hãy chọn đáp án đúng nhé!", delay=3)
+                play_sound("Bé hãy chọn đáp án đúng nhé", delay=2)
                 st.session_state.step = 3
                 st.rerun()
 
-    # --- Màn hình kiểm tra ---
     elif st.session_state.step == 3:
-        img_html = "".join([f'<span style="font-size:60px; margin:5px;">{st.session_state.icon}</span>' for _ in range(st.session_state.num)])
-        
-        st.markdown(f"""
-        <div class="main-card">
-            <p class="big-text">Đố bé có bao nhiêu {st.session_state.name}?</p>
-            <div>{img_html}</div>
-        </div>
-        """, unsafe_allow_html=True)
-        
+        img_html = "".join([f'<span style="font-size:50px; margin:5px;">{st.session_state.icon}</span>' for _ in range(st.session_state.num)])
+        st.markdown(f'<div class="main-card"><p>Có bao nhiêu {st.session_state.name}?</p><div>{img_html}</div></div>', unsafe_allow_html=True)
         cols = st.columns(3)
         for idx, choice in enumerate(st.session_state.choices):
             with cols[idx]:
                 if st.button(str(choice), key=f"ans_{idx}"):
                     if choice == st.session_state.num:
                         st.balloons()
-                        play_sound("Hoan hô! Bé giỏi quá!", delay=2)
+                        play_sound("Đúng rồi! Bé giỏi quá", delay=2)
                         generate_math_question()
                         st.session_state.step = 2
                         st.rerun()
                     else:
-                        st.error("Sai rồi!")
-                        play_sound("Chưa đúng, bé đếm lại nhé")
+                        st.error("Sai rồi")
+                        play_sound("Sai rồi bé ơi")
 
-# ================== 6. CHỨC NĂNG 2: KHO HỌC LIỆU ==================
-elif menu == "📂 Kho Học Liệu (Tải File)":
-    
-    st.markdown('<div class="main-card"><h1>📂 KHO HỌC LIỆU SỐ</h1><p>Nơi lưu trữ Video, Hình ảnh, Bài hát cho bé</p></div>', unsafe_allow_html=True)
-    
-    # --- Khu vực tải file ---
-    with st.expander("⬆️ Tải tài liệu mới lên (Bấm vào đây)", expanded=True):
-        uploaded_file = st.file_uploader("Chọn file ảnh, video hoặc âm thanh", type=['png', 'jpg', 'mp4', 'mp3', 'wav'])
-        
-        if uploaded_file is not None:
-            # Lưu file vào session state để hiển thị (giả lập lưu trữ)
-            file_details = {"name": uploaded_file.name, "type": uploaded_file.type, "data": uploaded_file}
-            
-            # Kiểm tra xem file đã có chưa để tránh trùng
-            if not any(d['name'] == uploaded_file.name for d in st.session_state.uploaded_files):
-                st.session_state.uploaded_files.append(file_details)
-                st.success(f"Đã tải lên thành công: {uploaded_file.name}")
-            else:
-                st.info("File này đã có trong danh sách.")
+# --- CHỨC NĂNG 2: KHO HỌC LIỆU (LƯU Ổ CỨNG) ---
+elif menu == "📂 Kho Học Liệu (Đám Mây)":
+    st.markdown('<div class="main-card"><h1>📂 KHO HỌC LIỆU SỐ</h1><p>Dữ liệu được lưu trữ an toàn trên máy chủ</p></div>', unsafe_allow_html=True)
+
+    # 1. Phần upload
+    with st.expander("⬆️ Tải tài liệu mới (Bấm vào đây)", expanded=True):
+        uploaded_files = st.file_uploader("Chọn file (Ảnh, Video, Nhạc)", accept_multiple_files=True)
+        if uploaded_files:
+            for uploaded_file in uploaded_files:
+                if save_uploaded_file(uploaded_file):
+                    st.success(f"Đã lưu: {uploaded_file.name}")
+            time.sleep(1) # Đợi xíu cho file lưu xong
+            st.rerun() # Load lại trang để hiện file mới
 
     st.markdown("---")
-    st.subheader("📚 Danh Sách Tài Liệu Đã Tải")
-
-    if len(st.session_state.uploaded_files) == 0:
-        st.warning("Chưa có tài liệu nào. Hãy tải file lên nhé!")
+    
+    # 2. Phần hiển thị (Quét file từ ổ cứng)
+    st.subheader("📚 Tài liệu hiện có:")
+    
+    # Lấy danh sách file trong thư mục
+    files = os.listdir(UPLOAD_FOLDER)
+    
+    if len(files) == 0:
+        st.info("Chưa có file nào trong thư mục 'thu_vien_so'.")
     else:
-        # Hiển thị dạng lưới (Grid)
-        cols = st.columns(2) # Chia làm 2 cột
-        
-        for idx, file in enumerate(st.session_state.uploaded_files):
-            with cols[idx % 2]: # Xếp so le
-                st.markdown(f"""
-                <div style="background:white; padding:15px; border-radius:15px; box-shadow:0 5px 10px rgba(0,0,0,0.1); margin-bottom:20px;">
-                    <h3 style="color:#007bff">📄 {file['name']}</h3>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                # Xử lý hiển thị theo loại file
-                if "image" in file['type']:
-                    st.image(file['data'], use_container_width=True)
-                elif "video" in file['type']:
-                    st.video(file['data'])
-                elif "audio" in file['type']:
-                    st.audio(file['data'])
-                
-                if st.button("🗑️ Xóa", key=f"del_{idx}"):
-                    st.session_state.uploaded_files.pop(idx)
-                    st.rerun()
+        # Hiển thị dạng lưới
+        cols = st.columns(2)
+        for i, filename in enumerate(files):
+            file_path = os.path.join(UPLOAD_FOLDER, filename)
+            file_type = get_file_type(filename)
+            
+            with cols[i % 2]:
+                with st.container():
+                    st.markdown(f"""
+                    <div style="background:white; padding:15px; border-radius:15px; box-shadow:0 4px 6px rgba(0,0,0,0.1); margin-bottom:20px; border:1px solid #eee;">
+                        <h4 style="color:#2980b9; margin:0">📄 {filename}</h4>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Hiển thị nội dung dựa trên loại file
+                    if file_type == 'image':
+                        st.image(file_path, use_container_width=True)
+                    elif file_type == 'video':
+                        st.video(file_path)
+                    elif file_type == 'audio':
+                        st.audio(file_path)
+                    else:
+                        st.warning("Định dạng không hỗ trợ xem trước")
+                    
+                    # Nút xóa file
+                    if st.button("🗑️ Xóa file", key=f"del_{filename}"):
+                        os.remove(file_path)
+                        st.rerun()
 
 # Footer
-st.markdown("<br><hr><center style='color:#888'>© 2025 Ứng dụng Giáo dục Mầm non AI</center>", unsafe_allow_html=True)
+st.markdown("<br><hr><center style='color:#999'>© 2025 AI Education System</center>", unsafe_allow_html=True)
