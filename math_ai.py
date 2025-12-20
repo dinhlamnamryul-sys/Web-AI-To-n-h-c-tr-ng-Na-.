@@ -3,195 +3,252 @@ import random
 from gtts import gTTS
 from io import BytesIO
 import time
+from PIL import Image
 
-# ================== 1. CẤU HÌNH TRANG & TRẠNG THÁI ==================
-st.set_page_config(page_title="Bé Vui Học Toán", page_icon="🐰", layout="centered")
+# ================== 1. CẤU HÌNH TRANG ==================
+st.set_page_config(
+    page_title="Hệ Thống Giáo Dục Mầm Non AI",
+    page_icon="🎓",
+    layout="wide", # Dùng màn hình rộng để hiển thị kho học liệu đẹp hơn
+    initial_sidebar_state="expanded"
+)
 
-if "step" not in st.session_state:
-    st.session_state.step = 1
-if "score" not in st.session_state:
-    st.session_state.score = 0
+# Khởi tạo Session State
+if "step" not in st.session_state: st.session_state.step = 1
+if "uploaded_files" not in st.session_state: st.session_state.uploaded_files = []
 
-# ================== 2. BỘ CSS "LONG LANH" (MAGIC UI) ==================
-# Phần này tạo hiệu ứng nền, nút bấm đẹp và hoạt hình
+# ================== 2. SIÊU CSS (GIAO DIỆN LONG LANH) ==================
 st.markdown("""
 <style>
-    /* Nền chuyển màu nhẹ nhàng (Pastel Gradient) */
+    /* Nền cầu vồng chuyển động */
     .stApp {
-        background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fad0c4, #a18cd1);
+        background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #a18cd1, #fbc2eb);
         background-size: 400% 400%;
         animation: gradient 15s ease infinite;
         font-family: 'Comic Sans MS', cursive, sans-serif;
     }
-    
     @keyframes gradient {
         0% {background-position: 0% 50%;}
         50% {background-position: 100% 50%;}
         100% {background-position: 0% 50%;}
     }
 
-    /* Hiệu ứng thẻ bài (Card) nổi bật */
-    .card {
-        background-color: rgba(255, 255, 255, 0.95);
-        border-radius: 25px;
+    /* Card (Khung nội dung) */
+    .main-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 30px;
         padding: 30px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        text-align: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
         border: 4px solid #fff;
+        text-align: center;
         margin-bottom: 20px;
     }
 
-    /* Hiệu ứng chữ và icon */
-    .big-emoji { font-size: 100px; animation: bounce 2s infinite; }
-    .medium-emoji { font-size: 60px; margin: 5px; display:inline-block; transition: transform 0.2s; }
-    .medium-emoji:hover { transform: scale(1.2); }
-    
-    h1 { color: #ff6b6b; text-shadow: 2px 2px 0px #fff; }
-    .question-text { font-size: 28px; color: #555; font-weight: bold; }
-    .highlight { color: #e056fd; font-size: 35px; }
+    /* Sidebar (Thanh bên) đẹp hơn */
+    [data-testid="stSidebar"] {
+        background-color: rgba(255, 255, 255, 0.8);
+        border-right: 2px solid #fff;
+    }
 
-    /* Animation nhún nhảy */
+    /* Tiêu đề & Chữ */
+    h1 { color: #ff6f61; text-shadow: 2px 2px 0 #fff; margin:0;}
+    h2 { color: #6a11cb; }
+    .big-text { font-size: 24px; color: #555; }
+    
+    /* Animation cho icon */
+    .bounce { animation: bounce 2s infinite; display: inline-block; font-size: 80px;}
     @keyframes bounce {
         0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
         40% {transform: translateY(-20px);}
         60% {transform: translateY(-10px);}
     }
 
-    /* Tùy chỉnh nút bấm Streamlit cho đẹp */
+    /* Nút bấm (Button) */
     div.stButton > button {
         width: 100%;
-        height: 70px;
+        height: 60px;
         border-radius: 20px;
-        font-size: 28px;
+        font-size: 22px;
         font-weight: bold;
-        background: linear-gradient(to bottom, #89f7fe, #66a6ff);
-        border: none;
-        color: white;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        transition: all 0.3s ease;
+        background: linear-gradient(45deg, #85FFBD 0%, #FFFB7D 100%);
+        color: #444;
+        border: 2px solid #fff;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transition: transform 0.2s;
     }
     div.stButton > button:hover {
-        transform: translateY(-3px) scale(1.02);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-        background: linear-gradient(to bottom, #66a6ff, #89f7fe);
+        transform: scale(1.03);
+        background: linear-gradient(45deg, #FFFB7D 0%, #85FFBD 100%);
     }
-    
-    /* Ẩn menu mặc định của Streamlit cho gọn */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
+
+    /* Vùng tải file (Uploader) */
+    [data-testid="stFileUploader"] {
+        background-color: #f0f2f6;
+        padding: 20px;
+        border-radius: 20px;
+        border: 2px dashed #888;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-# ================== 3. DỮ LIỆU & HÀM HỖ TRỢ ==================
-
-data_objects = {
-    "🐰": "Chú Thỏ", "🍎": "Quả Táo", "⭐": "Ngôi Sao", 
-    "🎈": "Bóng Bay", "🚗": "Ô Tô", "🐯": "Chú Hổ", 
-    "🍄": "Cây Nấm", "🌻": "Bông Hoa"
-}
-
-text_numbers = {
-    1: "Một", 2: "Hai", 3: "Ba", 4: "Bốn", 5: "Năm",
-    6: "Sáu", 7: "Bảy", 8: "Tám", 9: "Chín", 10: "Mười"
-}
-
-def play_sound(text):
-    """Phát âm thanh mượt mà qua bộ nhớ đệm"""
+# ================== 3. HÀM HỖ TRỢ ==================
+def play_sound(text, delay=0):
+    """Phát âm thanh và đợi (nếu cần)"""
     try:
         sound_file = BytesIO()
         tts = gTTS(text=text, lang='vi')
         tts.write_to_fp(sound_file)
         st.audio(sound_file, format='audio/mp3', autoplay=True)
+        if delay > 0:
+            with st.spinner("Đang nói..."):
+                time.sleep(delay)
     except:
-        pass # Bỏ qua nếu lỗi mạng
+        pass
 
-def generate_question():
-    """Tạo câu hỏi ngẫu nhiên mới"""
+def generate_math_question():
     st.session_state.num = random.randint(1, 10)
-    st.session_state.icon, st.session_state.name = random.choice(list(data_objects.items()))
-    
-    # Tạo đáp án trắc nghiệm (1 đúng, 2 sai)
+    st.session_state.icon, st.session_state.name = random.choice([
+        ("🐰", "Con Thỏ"), ("🍎", "Quả Táo"), ("⭐", "Ngôi Sao"), 
+        ("🎈", "Bóng Bay"), ("🍄", "Cây Nấm"), ("🐠", "Con Cá")
+    ])
+    # Tạo đáp án
     choices = [st.session_state.num]
     while len(choices) < 3:
         fake = random.randint(1, 10)
-        if fake not in choices:
-            choices.append(fake)
+        if fake not in choices: choices.append(fake)
     random.shuffle(choices)
     st.session_state.choices = choices
 
-# Khởi tạo câu hỏi lần đầu
-if "num" not in st.session_state:
-    generate_question()
+if "num" not in st.session_state: generate_math_question()
 
-# ================== 4. GIAO DIỆN CHÍNH (LOGIC CŨ - GIAO DIỆN MỚI) ==================
+# ================== 4. THANH ĐIỀU HƯỚNG (SIDEBAR) ==================
+with st.sidebar:
+    st.image("https://cdn-icons-png.flaticon.com/512/2232/2232688.png", width=100)
+    st.markdown("## 🎈 MENU CHÍNH")
+    
+    menu = st.radio(
+        "",
+        ["🐰 Bé Học Toán", "📂 Kho Học Liệu (Tải File)"],
+        index=0
+    )
+    
+    st.markdown("---")
+    st.info("💡 Mẹo: Giáo viên có thể tải video bài giảng lên 'Kho Học Liệu' để trình chiếu.")
 
-# --- BƯỚC 1: MÀN HÌNH CHÀO ---
-if st.session_state.step == 1:
-    st.markdown("""
-        <div class="card">
-            <div class="big-emoji">👋</div>
-            <h1>BÉ VUI HỌC TOÁN</h1>
-            <p class="question-text">Chào mừng bé đến với lớp học của Thỏ Con!</p>
+# ================== 5. CHỨC NĂNG 1: BÉ HỌC TOÁN ==================
+if menu == "🐰 Bé Học Toán":
+    
+    # --- Màn hình chào ---
+    if st.session_state.step == 1:
+        st.markdown('<div class="main-card">', unsafe_allow_html=True)
+        st.markdown('<div class="bounce">🐰</div>', unsafe_allow_html=True)
+        st.markdown('<h1>BÉ VUI HỌC TOÁN</h1>', unsafe_allow_html=True)
+        st.markdown('<p class="big-text">Chào mừng bé đến với khu vườn thần tiên!</p>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+        c1, c2, c3 = st.columns([1,2,1])
+        with c2:
+            if st.button("🚀 BẮT ĐẦU NGAY"):
+                play_sound("Chào mừng bé! Chúng mình cùng đi học đếm nhé!", delay=4)
+                st.session_state.step = 2
+                st.rerun()
+
+    # --- Màn hình học ---
+    elif st.session_state.step == 2:
+        img_html = "".join([f'<span style="font-size:60px; margin:5px; display:inline-block; animation:bounce 2s infinite">{st.session_state.icon}</span>' for _ in range(st.session_state.num)])
+        
+        st.markdown(f"""
+        <div class="main-card">
+            <p class="big-text">Bé hãy đếm xem có bao nhiêu <b>{st.session_state.name}</b>?</p>
+            <div>{img_html}</div>
+            <h1 style="font-size:80px; color:#ff6b6b">{st.session_state.num}</h1>
+            <p>({st.session_state.num} - {["Không","Một","Hai","Ba","Bốn","Năm","Sáu","Bảy","Tám","Chín","Mười"][st.session_state.num]})</p>
         </div>
-    """, unsafe_allow_html=True)
-    
-    if st.button("🚀 BẮT ĐẦU HỌC NÀO"):
-        st.session_state.step = 2
-        play_sound("Xin chào các bạn nhỏ. Hôm nay chúng mình cùng đếm số nhé!")
-        st.rerun()
+        """, unsafe_allow_html=True)
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("🔊 Nghe Đọc"):
+                play_sound(f"Có tất cả {st.session_state.num} {st.session_state.name}")
+        with col2:
+            if st.button("➡️ Bài Tập"):
+                play_sound("Bây giờ bé hãy chọn đáp án đúng nhé!", delay=3)
+                st.session_state.step = 3
+                st.rerun()
 
-# --- BƯỚC 2: HỌC ĐẾM (HIỆN SỐ VÀ HÌNH) ---
-elif st.session_state.step == 2:
-    # Hiển thị hình ảnh
-    img_html = "".join([f'<span class="medium-emoji">{st.session_state.icon}</span>' for _ in range(st.session_state.num)])
-    
-    st.markdown(f"""
-        <div class="card">
-            <p class="question-text">Bé hãy đếm cùng Thỏ nhé!</p>
-            <div style="margin: 20px 0;">{img_html}</div>
-            <hr>
-            <p class="question-text">Có tất cả <span class="highlight">{st.session_state.num}</span> {st.session_state.name}</p>
-            <p style="color:gray; font-size:20px">({text_numbers[st.session_state.num]})</p>
+    # --- Màn hình kiểm tra ---
+    elif st.session_state.step == 3:
+        img_html = "".join([f'<span style="font-size:60px; margin:5px;">{st.session_state.icon}</span>' for _ in range(st.session_state.num)])
+        
+        st.markdown(f"""
+        <div class="main-card">
+            <p class="big-text">Đố bé có bao nhiêu {st.session_state.name}?</p>
+            <div>{img_html}</div>
         </div>
-    """, unsafe_allow_html=True)
-    
-    c1, c2 = st.columns(2)
-    with c1:
-        if st.button("🔊 Đọc lại"):
-            play_sound(f"Có {text_numbers[st.session_state.num]} {st.session_state.name}")
-    with c2:
-        if st.button("➡️ Luyện tập"):
-            st.session_state.step = 3
-            play_sound(f"Bây giờ đố bé biết có bao nhiêu {st.session_state.name}?")
-            st.rerun()
+        """, unsafe_allow_html=True)
+        
+        cols = st.columns(3)
+        for idx, choice in enumerate(st.session_state.choices):
+            with cols[idx]:
+                if st.button(str(choice), key=f"ans_{idx}"):
+                    if choice == st.session_state.num:
+                        st.balloons()
+                        play_sound("Hoan hô! Bé giỏi quá!", delay=2)
+                        generate_math_question()
+                        st.session_state.step = 2
+                        st.rerun()
+                    else:
+                        st.error("Sai rồi!")
+                        play_sound("Chưa đúng, bé đếm lại nhé")
 
-# --- BƯỚC 3: LUYỆN TẬP (TRẮC NGHIỆM THAY VÌ NHẬP SỐ) ---
-elif st.session_state.step == 3:
-    # Hiển thị hình ảnh (không hiện số)
-    img_html = "".join([f'<span class="medium-emoji" style="animation: bounce 3s infinite;">{st.session_state.icon}</span>' for _ in range(st.session_state.num)])
+# ================== 6. CHỨC NĂNG 2: KHO HỌC LIỆU ==================
+elif menu == "📂 Kho Học Liệu (Tải File)":
     
-    st.markdown(f"""
-        <div class="card">
-            <p class="question-text">Đố bé có bao nhiêu {st.session_state.name}?</p>
-            <div style="margin: 20px 0;">{img_html}</div>
-        </div>
-    """, unsafe_allow_html=True)
+    st.markdown('<div class="main-card"><h1>📂 KHO HỌC LIỆU SỐ</h1><p>Nơi lưu trữ Video, Hình ảnh, Bài hát cho bé</p></div>', unsafe_allow_html=True)
     
-    # 3 Nút bấm to thay vì ô nhập liệu nhỏ xíu
-    cols = st.columns(3)
-    for idx, choice in enumerate(st.session_state.choices):
-        with cols[idx]:
-            if st.button(f"{choice}", key=f"btn_{idx}"):
-                if choice == st.session_state.num:
-                    st.balloons() # Hiệu ứng bóng bay
-                    play_sound("Hoan hô! Bé trả lời đúng rồi!")
-                    time.sleep(1.5)
-                    generate_question() # Tạo câu mới
-                    st.session_state.step = 2 # Quay lại vòng lặp học -> thi
+    # --- Khu vực tải file ---
+    with st.expander("⬆️ Tải tài liệu mới lên (Bấm vào đây)", expanded=True):
+        uploaded_file = st.file_uploader("Chọn file ảnh, video hoặc âm thanh", type=['png', 'jpg', 'mp4', 'mp3', 'wav'])
+        
+        if uploaded_file is not None:
+            # Lưu file vào session state để hiển thị (giả lập lưu trữ)
+            file_details = {"name": uploaded_file.name, "type": uploaded_file.type, "data": uploaded_file}
+            
+            # Kiểm tra xem file đã có chưa để tránh trùng
+            if not any(d['name'] == uploaded_file.name for d in st.session_state.uploaded_files):
+                st.session_state.uploaded_files.append(file_details)
+                st.success(f"Đã tải lên thành công: {uploaded_file.name}")
+            else:
+                st.info("File này đã có trong danh sách.")
+
+    st.markdown("---")
+    st.subheader("📚 Danh Sách Tài Liệu Đã Tải")
+
+    if len(st.session_state.uploaded_files) == 0:
+        st.warning("Chưa có tài liệu nào. Hãy tải file lên nhé!")
+    else:
+        # Hiển thị dạng lưới (Grid)
+        cols = st.columns(2) # Chia làm 2 cột
+        
+        for idx, file in enumerate(st.session_state.uploaded_files):
+            with cols[idx % 2]: # Xếp so le
+                st.markdown(f"""
+                <div style="background:white; padding:15px; border-radius:15px; box-shadow:0 5px 10px rgba(0,0,0,0.1); margin-bottom:20px;">
+                    <h3 style="color:#007bff">📄 {file['name']}</h3>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Xử lý hiển thị theo loại file
+                if "image" in file['type']:
+                    st.image(file['data'], use_container_width=True)
+                elif "video" in file['type']:
+                    st.video(file['data'])
+                elif "audio" in file['type']:
+                    st.audio(file['data'])
+                
+                if st.button("🗑️ Xóa", key=f"del_{idx}"):
+                    st.session_state.uploaded_files.pop(idx)
                     st.rerun()
-                else:
-                    st.error("Chưa đúng rồi! Bé đếm lại kỹ nhé!")
-                    play_sound("Sai rồi. Con thử lại đi!")
 
-# ================== FOOTER ==================
-st.markdown("<div style='text-align:center; color:#fff; padding:20px;'>© 2025 AI Math for Kids</div>", unsafe_allow_html=True)
+# Footer
+st.markdown("<br><hr><center style='color:#888'>© 2025 Ứng dụng Giáo dục Mầm non AI</center>", unsafe_allow_html=True)
