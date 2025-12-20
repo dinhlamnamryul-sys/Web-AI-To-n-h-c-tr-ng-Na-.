@@ -2,3 +2,4 @@ streamlit
 streamlit-lottie
 requests
 gTTS
+pip install SpeechRecognition pyaudio
