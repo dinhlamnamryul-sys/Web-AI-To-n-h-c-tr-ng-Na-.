@@ -15,103 +15,110 @@ st.set_page_config(
 # Khởi tạo Session
 if "step" not in st.session_state: st.session_state.step = 1
 if "num" not in st.session_state: st.session_state.num = 0
-# Biến này để kiểm soát việc tự động đọc, tránh đọc lại khi không cần thiết
-if "last_read_step" not in st.session_state: st.session_state.last_read_step = ""
-if "last_read_num" not in st.session_state: st.session_state.last_read_num = -1
 
-# ================== 2. CSS "SIÊU NỔI 3D" (CANDY POP STYLE) ==================
+# ================== 2. CSS "SIÊU NỔI 3D" & BUTTON KẸO DẺO ==================
 st.markdown("""
 <style>
-    /* 1. NỀN CẦU VỒNG */
+    /* 1. NỀN CẦU VỒNG TƯƠI SÁNG */
     .stApp {
-        background: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
-        font-family: 'Comic Sans MS', cursive, sans-serif;
+        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
     }
 
-    /* 2. KHUNG CARD 3D */
+    /* 2. KHUNG CARD 3D BAY LƠ LỬNG */
     .game-card {
-        background-color: #ffffff;
+        background-color: rgba(255, 255, 255, 0.95);
         border-radius: 40px;
         padding: 30px;
-        box-shadow: 0 20px 0 rgba(0,0,0,0.1), 0 40px 60px rgba(0,0,0,0.1); 
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1), 0 5px 15px rgba(0,0,0,0.05); 
         text-align: center;
-        border: 5px solid #fff;
+        border: 8px solid #fff;
         margin-top: 10px;
         margin-bottom: 30px;
-        animation: floatCard 6s ease-in-out infinite;
+        animation: floatCard 5s ease-in-out infinite;
     }
 
     @keyframes floatCard {
         0%, 100% { transform: translateY(0px); }
-        50% { transform: translateY(-15px); }
+        50% { transform: translateY(-10px); }
     }
 
-    /* 3. SỐ HỌC 3D */
+    /* 3. SỐ HỌC KHỔNG LỒ */
     .super-number {
         font-size: 160px;
         line-height: 1.2;
         font-weight: 900;
-        color: #ff4757;
-        text-shadow: 4px 4px 0px #ffffff, 8px 8px 0px rgba(0,0,0,0.15);
+        color: #ff6b6b;
+        text-shadow: 5px 5px 0px #fff, 8px 8px 0px rgba(0,0,0,0.1);
         margin: 10px 0;
-        animation: pop 0.5s;
+        animation: pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
-    /* 4. NÚT BẤM 3D */
+    /* 4. BUTTON STYLE "KẸO DẺO" (QUAN TRỌNG NHẤT) */
     div.stButton > button {
         width: 100%;
-        height: 70px;
-        font-size: 22px;
+        height: 75px;
+        font-size: 24px !important;
         font-weight: 900 !important;
-        color: white;
-        border: none;
-        border-radius: 20px;
+        color: white !important;
+        border: 4px solid white !important; /* Viền trắng tạo độ nổi */
+        border-radius: 50px !important; /* Bo tròn như viên kẹo */
         cursor: pointer;
-        position: relative;
-        top: 0;
-        transition: all 0.1s;
         margin-bottom: 15px;
         text-transform: uppercase;
-        box-shadow: 0 8px 0 rgba(0,0,0,0.2); 
+        box-shadow: 0 6px 0 rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1); /* Bóng đổ 3D */
+        transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+        position: relative;
+        top: 0;
     }
 
+    /* Hiệu ứng khi bấm nút */
     div.stButton > button:active {
-        top: 8px;
-        box-shadow: 0 0 0 rgba(0,0,0,0.2); 
+        top: 6px; /* Nút lún xuống */
+        box-shadow: 0 0 0 rgba(0,0,0,0.15), inset 0 5px 10px rgba(0,0,0,0.1) !important;
     }
 
-    /* 5. ICON NỔI */
+    /* Hiệu ứng Rung (Pulse) cho nút Bắt đầu */
+    @keyframes pulse-btn {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    .pulse-animation button {
+        animation: pulse-btn 1.5s infinite;
+    }
+
+    /* 5. ICON MINH HỌA */
     .char-item {
         font-size: 90px;
         display: inline-block;
         margin: 5px;
-        filter: drop-shadow(0 5px 0px rgba(0,0,0,0.15)); 
-        transition: transform 0.2s;
+        filter: drop-shadow(0 8px 5px rgba(0,0,0,0.1)); 
+        transition: transform 0.3s;
+        cursor: pointer;
     }
-    .char-item:hover { transform: scale(1.2) rotate(10deg); }
+    .char-item:hover { transform: scale(1.2) rotate(15deg); }
 
-    .instruction { font-size: 24px; color: #555; font-weight: bold; margin-bottom: 15px; }
+    .instruction { font-size: 26px; color: #57606f; font-weight: bold; margin-bottom: 10px; }
 
-    @keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+    @keyframes pop { 0% { transform: scale(0); opacity: 0;} 100% { transform: scale(1); opacity: 1;} }
     
     #MainMenu, footer, header {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
 
-# ================== 3. XỬ LÝ ÂM THANH TỰ ĐỘNG ==================
-def play_audio(text, wait_seconds=0):
-    """Hàm phát âm thanh"""
+# ================== 3. XỬ LÝ ÂM THANH ==================
+def play_sound_and_wait(text, wait_seconds):
     try:
         sound_file = BytesIO()
         tts = gTTS(text=text, lang='vi')
         tts.write_to_fp(sound_file)
         st.audio(sound_file, format='audio/mp3', autoplay=True)
-        
-        if wait_seconds > 0:
-            with st.spinner(f"🔊 Cô đang đọc: '{text}'..."):
-                time.sleep(wait_seconds)
+        with st.spinner(f"🔊 Cô đang đọc: '{text}'..."):
+            time.sleep(wait_seconds)
     except Exception as e:
-        st.error(f"Lỗi âm thanh: {e}")
+        st.error(f"Lỗi: {e}")
 
 def generate_data():
     st.session_state.num = random.randint(1, 10)
@@ -132,25 +139,34 @@ if st.session_state.num == 0:
 
 # ================== 4. GIAO DIỆN CHÍNH ==================
 
-# --- BƯỚC 1: INTRO ---
+# --- BƯỚC 1: INTRO (TRANG CHỦ) ---
 if st.session_state.step == 1:
     st.markdown("""
     <div class="game-card">
-        <div style="font-size:110px; margin-bottom:10px;">🎡</div>
-        <h1 style="color:#ff6b81; font-size:50px; text-shadow: 3px 3px 0 #fff;">BÉ VUI HỌC TOÁN</h1>
-        <p class="instruction">Học đếm số cùng AI</p>
+        <div style="font-size:120px; margin-bottom:10px; animation: bounce 2s infinite;">🎡</div>
+        <h1 style="color:#ff4757; font-size:55px; text-shadow: 4px 4px 0 #fff; margin:0;">BÉ VUI HỌC TOÁN</h1>
+        <p class="instruction" style="color:#2ed573;">Vừa học vừa chơi - Thảnh thơi điểm 10</p>
     </div>
     """, unsafe_allow_html=True)
     
     c1, c2, c3 = st.columns([1,2,1])
     with c2:
-        st.markdown("""<style>div.stButton > button {background: linear-gradient(to bottom, #2ecc71, #27ae60) !important;}</style>""", unsafe_allow_html=True)
+        # Nút Start: Màu gradient Đỏ Cam Rực Rỡ + Class Pulse
+        st.markdown('<div class="pulse-animation">', unsafe_allow_html=True)
+        st.markdown("""<style>div.stButton > button {
+            background: linear-gradient(to bottom, #ff6b6b, #ee5253) !important;
+            border-color: #ff9f43 !important;
+            height: 90px !important;
+            font-size: 30px !important;
+        }</style>""", unsafe_allow_html=True)
+        
         if st.button("🚀 BẮT ĐẦU NGAY"):
-            # Chuyển bước trước rồi mới đọc ở bước sau
+            play_sound_and_wait("Chào mừng bé! Hôm nay chúng mình cùng học số đếm nhé!", 4)
             st.session_state.step = 2
             st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
-# --- BƯỚC 2: HỌC SỐ (TỰ ĐỘNG ĐỌC) ---
+# --- BƯỚC 2: HỌC SỐ ---
 elif st.session_state.step == 2:
     st.markdown(f"""
     <div class="game-card">
@@ -159,36 +175,38 @@ elif st.session_state.step == 2:
     </div>
     """, unsafe_allow_html=True)
 
-    # --- TỰ ĐỘNG ĐỌC KHI MỚI VÀO HOẶC ĐỔI SỐ ---
-    # Logic: Nếu bước này chưa đọc, hoặc số đã thay đổi thì đọc
-    current_state_key = f"step2_{st.session_state.num}"
-    if st.session_state.last_read_step != current_state_key:
-        play_audio(f"Bé hãy nhìn xem, đây là số mấy? Đây là số {st.session_state.num}", 4)
-        st.session_state.last_read_step = current_state_key # Đánh dấu đã đọc
-
-    # Giao diện nút bấm
+    # Hàng 1
     c1, c2 = st.columns(2)
     with c1:
-        # Nút Nghe lại (Tím)
-        st.markdown(f"""<style>div.stButton:nth-of-type(1) > button {{background: linear-gradient(to bottom, #a55eea, #8854d0);}}</style>""", unsafe_allow_html=True)
-        if st.button("🔊 NGHE LẠI"):
-            play_audio(f"Đây là số {st.session_state.num}", 2)
+        # Nút Tím (Mộng mơ)
+        st.markdown(f"""<style>div.stButton:nth-of-type(1) > button {{background: linear-gradient(to bottom, #a29bfe, #6c5ce7);}}</style>""", unsafe_allow_html=True)
+        if st.button("🔊 NGHE CÂU HỎI"):
+            play_sound_and_wait("Bé hãy nhìn xem, đây là số mấy?", 3)
             
     with c2:
-        # Nút Đổi số (Vàng)
-        st.markdown(f"""<style>div.stButton:nth-of-type(2) > button {{background: linear-gradient(to bottom, #f1c40f, #f39c12);}}</style>""", unsafe_allow_html=True)
+        # Nút Xanh Dương (Hy vọng)
+        st.markdown(f"""<style>div.stButton:nth-of-type(2) > button {{background: linear-gradient(to bottom, #74b9ff, #0984e3);}}</style>""", unsafe_allow_html=True)
+        if st.button("🗣️ ĐÂY LÀ SỐ...?"):
+            play_sound_and_wait(f"Đây là số {st.session_state.num}", 2)
+
+    # Hàng 2
+    c3, c4 = st.columns(2)
+    with c3:
+        # Nút Vàng (Năng động)
+        st.markdown(f"""<style>div.stButton:nth-of-type(3) > button {{background: linear-gradient(to bottom, #ffeaa7, #fdcb6e); color: #d35400 !important;}}</style>""", unsafe_allow_html=True)
         if st.button("🔄 ĐỔI SỐ KHÁC"):
             generate_data()
             st.rerun()
             
-    # Nút Tiếp theo (Hồng)
-    st.markdown(f"""<style>div.stButton:nth-of-type(3) > button {{background: linear-gradient(to bottom, #ff9ff3, #f368e0);}}</style>""", unsafe_allow_html=True)
-    if st.button("➡️ XEM HÌNH ẢNH"):
-        play_audio(f"Đúng rồi! Số {st.session_state.num}. Cùng xem hình nhé!", 4)
-        st.session_state.step = 3
-        st.rerun()
+    with c4:
+        # Nút Hồng (Yêu thương) - Nút chuyển tiếp quan trọng
+        st.markdown(f"""<style>div.stButton:nth-of-type(4) > button {{background: linear-gradient(to bottom, #fd79a8, #e84393);}}</style>""", unsafe_allow_html=True)
+        if st.button("➡️ XEM HÌNH ẢNH"):
+            play_sound_and_wait(f"Đúng rồi! Số {st.session_state.num}. Cùng xem hình nhé!", 5)
+            st.session_state.step = 3
+            st.rerun()
 
-# --- BƯỚC 3: HỌC ĐẾM (TỰ ĐỘNG ĐỌC) ---
+# --- BƯỚC 3: HỌC ĐẾM ---
 elif st.session_state.step == 3:
     html_icons = "".join([f'<span class="char-item">{st.session_state.icon}</span>' for _ in range(st.session_state.num)])
     
@@ -196,37 +214,31 @@ elif st.session_state.step == 3:
     <div class="game-card">
         <p class="instruction">Đố bé: Có bao nhiêu <b>{st.session_state.name}</b>?</p>
         <div style="min-height: 120px; margin: 10px 0;">{html_icons}</div>
-        <h1 style="font-size: 80px !important; color:#ff6b81; text-shadow: 2px 2px 0 #fff;">{st.session_state.num}</h1>
+        <h1 style="font-size: 80px !important; color:#ff6b81; margin:0; text-shadow: 2px 2px 0 #fff;">{st.session_state.num}</h1>
     </div>
     """, unsafe_allow_html=True)
 
-    # --- TỰ ĐỘNG ĐỌC ---
-    current_state_key = f"step3_{st.session_state.num}"
-    if st.session_state.last_read_step != current_state_key:
-        play_audio(f"Đố bé biết có bao nhiêu bạn {st.session_state.name} ở đây? Có {st.session_state.num} bạn đấy!", 6)
-        st.session_state.last_read_step = current_state_key
-
     c1, c2 = st.columns(2)
     with c1:
-        # Nút Nghe lại (Tím)
-        st.markdown(f"""<style>div.stButton:nth-of-type(1) > button {{background: linear-gradient(to bottom, #a55eea, #8854d0);}}</style>""", unsafe_allow_html=True)
-        if st.button("🔊 NGHE LẠI"):
-            play_audio(f"Có bao nhiêu bạn {st.session_state.name} nhỉ?", 3)
+        # Nút Tím
+        st.markdown(f"""<style>div.stButton:nth-of-type(1) > button {{background: linear-gradient(to bottom, #a29bfe, #6c5ce7);}}</style>""", unsafe_allow_html=True)
+        if st.button("🔊 NGHE CÂU HỎI"):
+            play_sound_and_wait(f"Đố bé biết có bao nhiêu bạn {st.session_state.name} ở đây?", 5)
             
     with c2:
-        # Nút Đếm (Xanh lá)
-        st.markdown(f"""<style>div.stButton:nth-of-type(2) > button {{background: linear-gradient(to bottom, #2ecc71, #27ae60);}}</style>""", unsafe_allow_html=True)
+        # Nút Xanh Mint
+        st.markdown(f"""<style>div.stButton:nth-of-type(2) > button {{background: linear-gradient(to bottom, #55efc4, #00b894);}}</style>""", unsafe_allow_html=True)
         if st.button("🔢 ĐẾM CÙNG CÔ"):
-            play_audio(f"Một, hai, ba... Có tất cả {st.session_state.num} bạn {st.session_state.name}", 4)
+            play_sound_and_wait(f"Có tất cả {st.session_state.num} bạn {st.session_state.name}", 3)
 
-    # Nút Bài tập (Cam)
-    st.markdown(f"""<style>div.stButton:nth-of-type(3) > button {{background: linear-gradient(to bottom, #ff9f43, #ee5253);}}</style>""", unsafe_allow_html=True)
-    if st.button("➡️ LÀM BÀI TẬP"):
-        play_audio("Bây giờ bé hãy tự mình chọn đáp án đúng nhé!", 3)
+    # Nút Bài tập (Cam Đậm) - Nút to
+    st.markdown(f"""<style>div.stButton:nth-of-type(3) > button {{background: linear-gradient(to bottom, #fab1a0, #e17055); height: 80px;}}</style>""", unsafe_allow_html=True)
+    if st.button("🎮 CHƠI TRÒ CHƠI"):
+        play_sound_and_wait("Bây giờ bé hãy tự mình chọn đáp án đúng nhé!", 3)
         st.session_state.step = 4
         st.rerun()
 
-# --- BƯỚC 4: BÀI TẬP (TỰ ĐỘNG ĐỌC) ---
+# --- BƯỚC 4: BÀI TẬP ---
 elif st.session_state.step == 4:
     html_icons = "".join([f'<span class="char-item">{st.session_state.icon}</span>' for _ in range(st.session_state.num)])
     
@@ -237,37 +249,35 @@ elif st.session_state.step == 4:
     </div>
     """, unsafe_allow_html=True)
 
-    # --- TỰ ĐỘNG ĐỌC ---
-    current_state_key = f"step4_{st.session_state.num}"
-    if st.session_state.last_read_step != current_state_key:
-        play_audio("Bé hãy đếm kỹ xem có bao nhiêu hình, rồi bấm vào số đúng ở dưới nhé!", 5)
-        st.session_state.last_read_step = current_state_key
+    # Nút Câu hỏi
+    st.markdown(f"""<style>div.stButton:nth-of-type(1) > button {{background: linear-gradient(to bottom, #a29bfe, #6c5ce7);}}</style>""", unsafe_allow_html=True)
+    if st.button("🔊 NGHE CÂU HỎI"):
+        play_sound_and_wait("Bé hãy đếm kỹ xem có bao nhiêu hình, rồi bấm vào số đúng ở dưới nhé!", 6)
 
-    # Nút Nghe lại đề bài (Tím)
-    st.markdown(f"""<style>div.stButton:nth-of-type(1) > button {{background: linear-gradient(to bottom, #a55eea, #8854d0);}}</style>""", unsafe_allow_html=True)
-    if st.button("🔊 NGHE LẠI ĐỀ BÀI"):
-        play_audio("Bé hãy bấm vào số đúng ở dưới nhé!", 3)
-
-    # 3 Nút đáp án (Xanh biển)
+    # 3 Nút đáp án (Xanh Cyan)
     cols = st.columns(3)
     for idx, choice in enumerate(st.session_state.choices):
         with cols[idx]:
-            st.markdown(f"""<style>div.stButton:nth-of-type({idx+2}) > button {{background: linear-gradient(to bottom, #48dbfb, #0abde3);}}</style>""", unsafe_allow_html=True)
+            # Mỗi nút đáp án có màu hơi khác nhau một chút cho sinh động
+            colors = [("#81ecec", "#00cec9"), ("#74b9ff", "#0984e3"), ("#a29bfe", "#6c5ce7")]
+            c_light, c_dark = colors[idx % 3]
+            
+            st.markdown(f"""<style>div.stButton:nth-of-type({idx+2}) > button {{background: linear-gradient(to bottom, {c_light}, {c_dark}); font-size: 35px !important;}}</style>""", unsafe_allow_html=True)
             
             if st.button(f"{choice}", key=f"quiz_{idx}"):
                 if choice == st.session_state.num:
                     st.balloons()
-                    play_audio("Chính xác! Bé thông minh quá! Hoan hô!", 4)
+                    play_sound_and_wait("Chính xác! Bé thông minh quá! Hoan hô!", 4)
                     generate_data()
                     st.session_state.step = 2
                     st.rerun()
                 else:
                     st.error("Chưa đúng!")
-                    play_audio(f"Số {choice} chưa đúng. Bé thử lại nhé!", 3)
+                    play_sound_and_wait(f"Số {choice} chưa đúng. Bé thử lại nhé!", 3)
 
     st.write("")
-    # Nút Quay lại (Xám)
-    st.markdown(f"""<style>div.stButton:last-child > button {{background: linear-gradient(to bottom, #95a5a6, #7f8c8d); height: 50px; font-size: 18px;}}</style>""", unsafe_allow_html=True)
+    # Nút Quay lại (Xám) - Nhỏ hơn chút
+    st.markdown(f"""<style>div.stButton:last-child > button {{background: linear-gradient(to bottom, #dfe6e9, #b2bec3); color: #636e72 !important; height: 50px; font-size: 18px !important;}}</style>""", unsafe_allow_html=True)
     if st.button("⬅️ QUAY LẠI HỌC SỐ"):
         st.session_state.step = 2
         st.rerun()
