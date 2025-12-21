@@ -6,7 +6,7 @@ import time
 
 # ================== 1. CẤU HÌNH TRANG ==================
 st.set_page_config(
-    page_title="Bé Vui Học Toán 3D",
+    page_title="Bé Đếm Cùng Thỏ Con",
     page_icon="🐰",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -321,3 +321,4 @@ elif st.session_state.step == 4:
                     else:
                         st.error("Sai rồi!")
                         play_sound_and_wait("Chưa đúng rồi, bé thử lại nhé!", 2)
+
