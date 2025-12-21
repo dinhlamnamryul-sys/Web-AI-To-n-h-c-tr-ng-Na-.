@@ -63,7 +63,7 @@ st.markdown("""
         75% { transform: translateY(-5px) rotate(5deg) scale(1.02); }
     }
 
-    /* 1. Thỏ ở trang chủ (Giữ nguyên) */
+    /* 1. Thỏ ở trang chủ */
     .rabbit-hero {
         max-width: 120px;
         height: auto;
@@ -72,7 +72,7 @@ st.markdown("""
         animation: rabbitJump 3s infinite ease-in-out;
     }
 
-    /* 2. THỎ "PEEK" - NGỒI TRÊN CẠNH BẢNG SỐ (MỚI) */
+    /* 2. THỎ "PEEK" - NGỒI TRÊN CẠNH BẢNG SỐ */
     .rabbit-peek {
         position: absolute;
         top: -90px;       /* Đẩy lên trên mép bảng */
@@ -81,7 +81,20 @@ st.markdown("""
         height: auto;
         z-index: 200;     /* Nằm đè lên trên bảng số */
         filter: drop-shadow(2px 5px 5px rgba(0,0,0,0.3));
-        animation: rabbitJump 3s infinite ease-in-out; /* Vẫn nhún nhảy */
+        animation: rabbitJump 3s infinite ease-in-out;
+    }
+    
+    /* 3. HOA CỎ TRANG TRÍ (MỚI) */
+    .grass-decoration {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100vw;       /* Tràn màn hình ngang */
+        height: auto;
+        max-height: 150px;  /* Giới hạn chiều cao để không che nút */
+        z-index: 40;        /* Nằm dưới card nhưng trên nền */
+        pointer-events: none; /* Cho phép bấm xuyên qua nếu ảnh che nút */
+        object-fit: cover;
     }
 
     /* Số khổng lồ */
@@ -228,7 +241,13 @@ if st.session_state.num == 0:
 
 # --- HÀM HTML TRANG TRÍ ---
 def get_decoration_html():
-    return """<div class="full-screen-anim"><div class="duck-anim">🦆</div><div class="bee-anim">🐝</div><div class="bee-anim" style="animation-delay: 10s; top: 40vh; font-size: 35px;">🐝</div><div style="position: absolute; bottom: 10px; left: 5vw; font-size: 50px;">🌷</div><div style="position: absolute; bottom: 15px; left: 12vw; font-size: 40px;">🌻</div><div style="position: absolute; bottom: 10px; right: 5vw; font-size: 50px;">🍄</div><div class="bubble" style="left: 10vw; width: 30px; height: 30px; animation: rise-screen 10s infinite;"></div><div class="bubble" style="left: 30vw; width: 50px; height: 50px; animation: rise-screen 15s infinite 2s;"></div><div class="bubble" style="left: 70vw; width: 20px; height: 20px; animation: rise-screen 12s infinite 5s;"></div><div class="bubble" style="left: 90vw; width: 40px; height: 40px; animation: rise-screen 18s infinite 1s;"></div></div>"""
+    # Xử lý ảnh hoa cỏ
+    grass_html = ""
+    img_b64 = get_base64_image("hoaco.png")
+    if img_b64:
+        grass_html = f'<img src="data:image/png;base64,{img_b64}" class="grass-decoration">'
+
+    return f"""<div class="full-screen-anim"><div class="duck-anim">🦆</div><div class="bee-anim">🐝</div><div class="bee-anim" style="animation-delay: 10s; top: 40vh; font-size: 35px;">🐝</div><div style="position: absolute; bottom: 10px; left: 5vw; font-size: 50px;">🌷</div><div style="position: absolute; bottom: 15px; left: 12vw; font-size: 40px;">🌻</div><div style="position: absolute; bottom: 10px; right: 5vw; font-size: 50px;">🍄</div><div class="bubble" style="left: 10vw; width: 30px; height: 30px; animation: rise-screen 10s infinite;"></div><div class="bubble" style="left: 30vw; width: 50px; height: 50px; animation: rise-screen 15s infinite 2s;"></div><div class="bubble" style="left: 70vw; width: 20px; height: 20px; animation: rise-screen 12s infinite 5s;"></div><div class="bubble" style="left: 90vw; width: 40px; height: 40px; animation: rise-screen 18s infinite 1s;"></div>{grass_html}</div>"""
 
 # ================== 4. GIAO DIỆN CHÍNH ==================
 
