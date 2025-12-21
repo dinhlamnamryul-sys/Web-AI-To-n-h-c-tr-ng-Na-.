@@ -3,6 +3,8 @@ import random
 from gtts import gTTS
 from io import BytesIO
 import time
+import base64
+import os
 
 # ================== 1. CẤU HÌNH TRANG ==================
 st.set_page_config(
@@ -15,6 +17,14 @@ st.set_page_config(
 # Khởi tạo Session
 if "step" not in st.session_state: st.session_state.step = 1
 if "num" not in st.session_state: st.session_state.num = 0
+
+# --- HÀM HỖ TRỢ ĐỌC ẢNH ---
+def get_base64_image(image_path):
+    try:
+        with open(image_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode()
+    except FileNotFoundError:
+        return None
 
 # ================== 2. CSS & ANIMATION TOÀN MÀN HÌNH ==================
 st.markdown("""
@@ -42,6 +52,22 @@ st.markdown("""
     @keyframes floatCard {
         0%, 100% { transform: translateY(0px); }
         50% { transform: translateY(-10px); }
+    }
+    
+    /* ANIMATION RIÊNG CHO THỎ CON (USER IMAGE) */
+    @keyframes rabbitJump {
+        0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); }
+        25% { transform: translateY(-15px) rotate(-5deg) scale(1.05); }
+        50% { transform: translateY(0px) rotate(0deg) scale(1); }
+        75% { transform: translateY(-5px) rotate(5deg) scale(1.02); }
+    }
+
+    .rabbit-hero {
+        max-width: 200px;
+        height: auto;
+        margin-bottom: 20px;
+        filter: drop-shadow(0 8px 6px rgba(0,0,0,0.2));
+        animation: rabbitJump 3s infinite ease-in-out; /* Thỏ chuyển động tại đây */
     }
 
     /* Số khổng lồ */
@@ -183,8 +209,7 @@ def generate_data():
 if st.session_state.num == 0:
     generate_data()
 
-# --- HÀM HTML TRANG TRÍ (ĐÃ SỬA LỖI HIỂN THỊ TEXT) ---
-# Tôi đã gộp thành 1 dòng để tránh lỗi thụt đầu dòng của Python
+# --- HÀM HTML TRANG TRÍ ---
 def get_decoration_html():
     return """<div class="full-screen-anim"><div class="duck-anim">🦆</div><div class="bee-anim">🐝</div><div class="bee-anim" style="animation-delay: 10s; top: 40vh; font-size: 35px;">🐝</div><div style="position: absolute; bottom: 10px; left: 5vw; font-size: 50px;">🌷</div><div style="position: absolute; bottom: 15px; left: 12vw; font-size: 40px;">🌻</div><div style="position: absolute; bottom: 10px; right: 5vw; font-size: 50px;">🍄</div><div class="bubble" style="left: 10vw; width: 30px; height: 30px; animation: rise-screen 10s infinite;"></div><div class="bubble" style="left: 30vw; width: 50px; height: 50px; animation: rise-screen 15s infinite 2s;"></div><div class="bubble" style="left: 70vw; width: 20px; height: 20px; animation: rise-screen 12s infinite 5s;"></div><div class="bubble" style="left: 90vw; width: 40px; height: 40px; animation: rise-screen 18s infinite 1s;"></div></div>"""
 
@@ -195,9 +220,20 @@ st.markdown(get_decoration_html(), unsafe_allow_html=True)
 
 # --- BƯỚC 1: TRANG CHỦ ---
 if st.session_state.step == 1:
-    st.markdown("""
+    # Xử lý hình ảnh Thỏ con
+    img_html = ""
+    img_b64 = get_base64_image("thocon.png") # Đọc file ảnh thocon.png
+    
+    if img_b64:
+        # Nếu tìm thấy ảnh, dùng ảnh và gán class rabbit-hero để nhảy
+        img_html = f'<img src="data:image/png;base64,{img_b64}" class="rabbit-hero">'
+    else:
+        # Nếu không thấy ảnh (phòng hờ), dùng icon cũ
+        img_html = '<div style="font-size:100px; margin-bottom:10px;">🐰</div>'
+
+    st.markdown(f"""
     <div class="game-card" style="padding: 50px;">
-        <div style="font-size:100px; margin-bottom:10px;">🐰</div>
+        {img_html}
         <h1 style="color:#ff4757; font-size:50px;">Bé Đếm Cùng Thỏ Con</h1>
         <p class="instruction">Học mà chơi - Chơi mà học</p>
     </div>
@@ -321,5 +357,3 @@ elif st.session_state.step == 4:
                     else:
                         st.error("Sai rồi!")
                         play_sound_and_wait("Chưa đúng rồi, bé thử lại nhé!", 2)
-
-
