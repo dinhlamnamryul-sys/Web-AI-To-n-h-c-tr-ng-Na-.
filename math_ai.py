@@ -35,12 +35,19 @@ st.markdown("""
         font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
     }
 
-    /* ẨN THANH PHÁT ÂM THANH (LOA) */
+    /* ẨN THANH PHÁT ÂM THANH */
     [data-testid="stAudio"] {
         display: none !important;
     }
     
-    /* Card hiển thị - Nổi lên trên cùng */
+    /* === QUAN TRỌNG: CHỐNG LÀM MỜ KHI APP ĐANG CHẠY (KHI NÓI) === */
+    /* Ép buộc mọi phần tử trong app không bao giờ bị giảm opacity hay bị filter mờ */
+    .element-container, .stMarkdown, .stBlock, div[data-testid="stVerticalBlock"] {
+        opacity: 1 !important;
+        filter: none !important;
+    }
+    
+    /* Card hiển thị */
     .game-card {
         background-color: rgba(255, 255, 255, 0.95);
         border-radius: 40px;
@@ -49,10 +56,15 @@ st.markdown("""
         text-align: center;
         border: 6px solid #fff;
         animation: floatCard 5s ease-in-out infinite;
-        position: relative; /* Để có thể đặt thỏ tuyệt đối theo khung này */
+        position: relative;
         z-index: 100;
         min-height: 350px;
-        margin-top: 40px; /* Thêm khoảng trống bên trên để thỏ không bị che */
+        margin-top: 40px;
+        
+        /* Đảm bảo card này luôn rõ nét tuyệt đối */
+        opacity: 1 !important;
+        filter: none !important;
+        transform-style: preserve-3d;
     }
 
     @keyframes floatCard {
@@ -68,47 +80,46 @@ st.markdown("""
         75% { transform: translateY(-5px) rotate(5deg) scale(1.02); }
     }
 
-    /* 1. Thỏ ở trang chủ */
     .rabbit-hero {
         max-width: 120px;
         height: auto;
         margin-bottom: 20px;
-        filter: drop-shadow(0 8px 6px rgba(0,0,0,0.2));
+        filter: drop-shadow(0 8px 6px rgba(0,0,0,0.2)) !important; /* Giữ bóng, không cho mờ */
         animation: rabbitJump 3s infinite ease-in-out;
+        opacity: 1 !important;
     }
 
-    /* 2. THỎ "PEEK" - NGỒI TRÊN CẠNH BẢNG SỐ */
     .rabbit-peek {
         position: absolute;
-        top: -90px;       /* Đẩy lên trên mép bảng */
-        left: -30px;      /* Đẩy sang trái một chút */
-        width: 130px;     /* Kích thước vừa vặn */
+        top: -90px;
+        left: -30px;
+        width: 130px;
         height: auto;
-        z-index: 200;     /* Nằm đè lên trên bảng số */
-        filter: drop-shadow(2px 5px 5px rgba(0,0,0,0.3));
+        z-index: 200;
+        filter: drop-shadow(2px 5px 5px rgba(0,0,0,0.3)) !important;
         animation: rabbitJump 3s infinite ease-in-out;
+        opacity: 1 !important;
     }
     
-    /* 3. HOA CỎ TRANG TRÍ (MỚI) */
     .grass-decoration {
         position: fixed;
         bottom: 0;
         left: 0;
-        width: 100vw;       /* Tràn màn hình ngang */
+        width: 100vw;
         height: auto;
-        max-height: 150px;  /* Giới hạn chiều cao để không che nút */
-        z-index: 40;        /* Nằm dưới card nhưng trên nền */
-        pointer-events: none; /* Cho phép bấm xuyên qua nếu ảnh che nút */
+        max-height: 150px;
+        z-index: 40;
+        pointer-events: none;
         object-fit: cover;
+        opacity: 1 !important;
     }
 
-    /* SỐ KHỔNG LỒ - ĐÃ ĐƯỢC LÀM NÉT */
+    /* SỐ KHỔNG LỒ - SIÊU NÉT */
     .super-number {
         font-size: 140px;
         line-height: 1.1;
-        font-weight: 900; /* Siêu đậm */
+        font-weight: 900;
         color: #ff6b6b;
-        /* Tạo viền trắng xung quanh số để tách biệt khỏi nền */
         text-shadow: 
             3px 3px 0 #fff,
             -1px -1px 0 #fff,  
@@ -117,8 +128,12 @@ st.markdown("""
             1px 1px 0 #fff;
         margin: 0;
         margin-top: 20px;
-        opacity: 1 !important; /* Bắt buộc không mờ */
-        filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.1)); /* Bóng nhẹ dưới số */
+        
+        /* Các thuộc tính chống mờ */
+        opacity: 1 !important;
+        filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.1)) !important;
+        transform: translateZ(0); /* Kích hoạt GPU rendering để chữ nét hơn */
+        -webkit-font-smoothing: antialiased;
     }
 
     /* BUTTON STYLE */
@@ -126,27 +141,28 @@ st.markdown("""
         width: 100%;
         height: 65px;
         font-size: 18px !important;
-        font-weight: 900 !important; /* Tăng độ đậm */
+        font-weight: 900 !important;
         color: white !important;
         border: 3px solid white !important;
         border-radius: 30px !important;
         cursor: pointer;
         margin-bottom: 12px;
         box-shadow: 0 5px 0 rgba(0,0,0,0.15);
-        transition: all 0.1s; /* Giảm thời gian transition để phản hồi nhanh hơn */
+        transition: all 0.1s;
         position: relative;
         z-index: 101; 
-        opacity: 1 !important; /* Đảm bảo nút luôn rõ 100% */
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.3); /* Thêm bóng chữ để số nổi bật */
+        opacity: 1 !important; 
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
     }
 
-    /* Trạng thái khi bấm hoặc focus: KHÔNG LÀM MỜ */
+    /* Trạng thái khi bấm: KHÔNG MỜ */
     div.stButton > button:active, div.stButton > button:focus, div.stButton > button:hover {
         top: 4px;
         box-shadow: 0 0 0 rgba(0,0,0,0.15);
         color: white !important;
-        background-color: inherit !important; /* Giữ nguyên màu nền */
-        opacity: 1 !important; /* QUAN TRỌNG: Không cho phép mờ */
+        background-color: inherit !important;
+        opacity: 1 !important; 
+        filter: none !important;
         text-decoration: none !important;
         outline: none !important;
         border-color: white !important;
@@ -157,9 +173,10 @@ st.markdown("""
         display: inline-block;
         margin: 5px;
         filter: drop-shadow(0 5px 2px rgba(0,0,0,0.1)); 
+        opacity: 1 !important;
     }
     
-    .instruction { font-size: 22px; color: #57606f; font-weight: bold; }
+    .instruction { font-size: 22px; color: #57606f; font-weight: bold; opacity: 1 !important; }
     
     #MainMenu, footer, header {visibility: hidden;}
     
@@ -171,10 +188,7 @@ st.markdown("""
         z-index: 50;
     }
 
-    /* ============================================================
-       ANIMATION (Full Screen)
-       ============================================================ */
-    
+    /* Animation background */
     .full-screen-anim {
         position: fixed;
         top: 0;
@@ -185,7 +199,10 @@ st.markdown("""
         z-index: 1;
         overflow: hidden;
     }
-
+    .duck-anim { position: absolute; bottom: 20px; font-size: 80px; animation: swim-screen 25s linear infinite; }
+    .bee-anim { position: absolute; font-size: 50px; animation: fly-screen 20s linear infinite; }
+    .bubble { position: absolute; background: rgba(255,255,255,0.6); border-radius: 50%; }
+    
     @keyframes swim-screen {
         0% { left: -150px; transform: scaleX(1); }
         45% { left: 100vw; transform: scaleX(1); }
@@ -193,35 +210,17 @@ st.markdown("""
         95% { left: -150px; transform: scaleX(-1); }
         100% { left: -150px; transform: scaleX(1); }
     }
-    .duck-anim {
-        position: absolute;
-        bottom: 20px;
-        font-size: 80px;
-        animation: swim-screen 25s linear infinite;
-    }
-
     @keyframes fly-screen {
-        0%   { top: 10vh; left: -10vw; }
-        25%  { top: 20vh; left: 30vw; transform: rotate(10deg); }
-        50%  { top: 5vh;  left: 60vw; transform: rotate(-10deg); }
-        75%  { top: 30vh; left: 80vw; transform: rotate(10deg); }
+        0% { top: 10vh; left: -10vw; }
+        25% { top: 20vh; left: 30vw; transform: rotate(10deg); }
+        50% { top: 5vh; left: 60vw; transform: rotate(-10deg); }
+        75% { top: 30vh; left: 80vw; transform: rotate(10deg); }
         100% { top: 15vh; left: 110vw; }
     }
-    .bee-anim {
-        position: absolute;
-        font-size: 50px;
-        animation: fly-screen 20s linear infinite;
-    }
-
     @keyframes rise-screen {
         0% { bottom: -50px; opacity: 0; transform: scale(0.5); }
         50% { opacity: 0.6; }
         100% { bottom: 100vh; opacity: 0; transform: scale(1.5); }
-    }
-    .bubble {
-        position: absolute;
-        background: rgba(255,255,255,0.6);
-        border-radius: 50%;
     }
 
 </style>
@@ -233,12 +232,14 @@ def play_sound_and_wait(text, manual_wait=0):
         sound_file = BytesIO()
         tts = gTTS(text=text, lang='vi')
         tts.write_to_fp(sound_file)
-        # st.audio sẽ tạo ra element audio, nhưng CSS ở trên đã ẩn nó đi
+        
+        # Phát âm thanh (đã ẩn giao diện bằng CSS)
         st.audio(sound_file, format='audio/mp3', autoplay=True)
         
         calculated_wait = (len(text.split()) * 0.45) + 2.0
         final_wait = max(calculated_wait, manual_wait)
 
+        # Spinner vẫn hiện để báo hiệu, nhưng CSS đã chặn việc nó làm mờ nền xung quanh
         with st.spinner(f"🔊 Cô đang nói..."):
             time.sleep(final_wait)
             
@@ -264,7 +265,6 @@ if st.session_state.num == 0:
 
 # --- HÀM HTML TRANG TRÍ ---
 def get_decoration_html():
-    # Xử lý ảnh hoa cỏ
     grass_html = ""
     img_b64 = get_base64_image("hoaco.png")
     if img_b64:
@@ -280,7 +280,6 @@ st.markdown(get_decoration_html(), unsafe_allow_html=True)
 if st.session_state.step == 1:
     img_html = ""
     img_b64 = get_base64_image("thocon.png")
-    
     if img_b64:
         img_html = f'<img src="data:image/png;base64,{img_b64}" class="rabbit-hero">'
     else:
@@ -328,13 +327,10 @@ elif st.session_state.step == 2:
             st.session_state.step = 3
             st.rerun()
     
-    # --- PHẦN HIỂN THỊ THẺ SỐ VÀ THỎ ---
     with col_display:
-        # Chuẩn bị hình thỏ
         rabbit_html = ""
         img_b64 = get_base64_image("thocon.png")
         if img_b64:
-            # Class rabbit-peek sẽ đưa thỏ lên góc trên bảng số
             rabbit_html = f'<img src="data:image/png;base64,{img_b64}" class="rabbit-peek">'
         
         st.markdown(f"""
