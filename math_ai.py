@@ -227,7 +227,7 @@ def generate_data():
     st.session_state.icon, st.session_state.name = random.choice([
         ("🐰", "Thỏ"), ("🍎", "Táo"), ("⭐", "Sao"), 
         ("🎈", "Bóng"), ("🍄", "Nấm"), ("🐠", "Cá"),
-        ("🚗", "Xe"), ("🦋", "Bươm")
+        ("🚗", "Xe"), ("🦋", "Bướm")
     ])
     choices = [st.session_state.num]
     while len(choices) < 3:
@@ -397,3 +397,4 @@ elif st.session_state.step == 4:
                     else:
                         st.error("Sai rồi!")
                         play_sound_and_wait("Chưa đúng rồi, bé thử lại nhé!")
+
