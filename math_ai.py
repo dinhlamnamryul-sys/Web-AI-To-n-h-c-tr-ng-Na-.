@@ -221,7 +221,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ================== 3. HÀM XỬ LÝ LOGIC ==================
+# ================== 3. HÀM XỬ LÝ LOGIC (ĐÃ TỐI ƯU TỐC ĐỘ) ==================
 def play_sound_and_wait(text, manual_wait=0):
     try:
         sound_file = BytesIO()
@@ -231,7 +231,10 @@ def play_sound_and_wait(text, manual_wait=0):
         # Phát âm thanh (đã ẩn giao diện bằng CSS)
         st.audio(sound_file, format='audio/mp3', autoplay=True)
         
-        calculated_wait = (len(text.split()) * 0.45) + 2.0
+        # CẬP NHẬT MỚI: Giảm thời gian chờ xuống tối đa
+        # Công thức cũ: 0.45s/từ + 2.0s => Quá lâu
+        # Công thức mới: 0.3s/từ + 0.5s => Nhanh hơn nhiều, nói xong chuyển luôn
+        calculated_wait = (len(text.split()) * 0.3) + 0.5
         final_wait = max(calculated_wait, manual_wait)
 
         with st.spinner(f"🔊 Cô đang nói..."):
