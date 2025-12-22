@@ -35,6 +35,11 @@ st.markdown("""
         font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
     }
 
+    /* ẨN THANH PHÁT ÂM THANH (LOA) */
+    [data-testid="stAudio"] {
+        display: none !important;
+    }
+    
     /* Card hiển thị - Nổi lên trên cùng */
     .game-card {
         background-color: rgba(255, 255, 255, 0.95);
@@ -97,15 +102,23 @@ st.markdown("""
         object-fit: cover;
     }
 
-    /* Số khổng lồ */
+    /* SỐ KHỔNG LỒ - ĐÃ ĐƯỢC LÀM NÉT */
     .super-number {
         font-size: 140px;
         line-height: 1.1;
-        font-weight: 900;
+        font-weight: 900; /* Siêu đậm */
         color: #ff6b6b;
-        text-shadow: 4px 4px 0px #fff;
+        /* Tạo viền trắng xung quanh số để tách biệt khỏi nền */
+        text-shadow: 
+            3px 3px 0 #fff,
+            -1px -1px 0 #fff,  
+            1px -1px 0 #fff,
+            -1px 1px 0 #fff,
+            1px 1px 0 #fff;
         margin: 0;
         margin-top: 20px;
+        opacity: 1 !important; /* Bắt buộc không mờ */
+        filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.1)); /* Bóng nhẹ dưới số */
     }
 
     /* BUTTON STYLE */
@@ -220,6 +233,7 @@ def play_sound_and_wait(text, manual_wait=0):
         sound_file = BytesIO()
         tts = gTTS(text=text, lang='vi')
         tts.write_to_fp(sound_file)
+        # st.audio sẽ tạo ra element audio, nhưng CSS ở trên đã ẩn nó đi
         st.audio(sound_file, format='audio/mp3', autoplay=True)
         
         calculated_wait = (len(text.split()) * 0.45) + 2.0
